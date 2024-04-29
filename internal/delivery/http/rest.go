@@ -10,6 +10,11 @@ import (
 	"os/signal"
 	"syscall"
 
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
+	_ "github.com/imanudd/inventorySvc-clean-architecture/docs"
+
 	"github.com/gin-gonic/gin"
 	"github.com/imanudd/inventorySvc-clean-architecture/config"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/delivery/http/handler"
@@ -18,12 +23,30 @@ import (
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/usecase"
 )
 
+// NewRest
+// @title Inventory Service API
+// @version 1.0
+// @description Inventory Service API
+// @termsOfService http://swagger.io/terms/
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+// @host localhost:8000
+// @BasePath /
+// @securityDefinitions.apiKey ApiKeyAuth
+// @in header
+// @name authorization
+
 func NewRest(cfg *config.MainConfig) *gin.Engine {
 	if cfg.Environment != "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
 	app := gin.Default()
+
+	app.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	app.Use(func(c *gin.Context) {
 		c.Header("Access-Control-Allow-Origin", "*")
