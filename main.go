@@ -1,6 +1,6 @@
 package main
 
-import "github.com/imanudd/clean-arch-pattern/cmd"
+import "github.com/imanudd/inventorySvc-clean-architecture/cmd"
 
 func main() {
 	cmd.Run()

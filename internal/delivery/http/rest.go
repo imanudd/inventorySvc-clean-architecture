@@ -11,11 +11,11 @@ import (
 	"syscall"
 
 	"github.com/gin-gonic/gin"
-	"github.com/imanudd/clean-arch-pattern/config"
-	"github.com/imanudd/clean-arch-pattern/internal/delivery/http/handler"
-	"github.com/imanudd/clean-arch-pattern/internal/delivery/http/middleware"
-	"github.com/imanudd/clean-arch-pattern/internal/repository"
-	"github.com/imanudd/clean-arch-pattern/internal/usecase"
+	"github.com/imanudd/inventorySvc-clean-architecture/config"
+	"github.com/imanudd/inventorySvc-clean-architecture/internal/delivery/http/handler"
+	"github.com/imanudd/inventorySvc-clean-architecture/internal/delivery/http/middleware"
+	"github.com/imanudd/inventorySvc-clean-architecture/internal/repository"
+	"github.com/imanudd/inventorySvc-clean-architecture/internal/usecase"
 )
 
 func NewRest(cfg *config.MainConfig) *gin.Engine {

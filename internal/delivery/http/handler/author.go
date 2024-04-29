@@ -6,8 +6,8 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/imanudd/clean-arch-pattern/internal/delivery/http/helper"
-	"github.com/imanudd/clean-arch-pattern/internal/domain"
+	"github.com/imanudd/inventorySvc-clean-architecture/internal/delivery/http/helper"
+	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
 )
 
 // CreateAuthor handler

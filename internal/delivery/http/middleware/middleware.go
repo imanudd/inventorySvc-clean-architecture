@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/imanudd/clean-arch-pattern/config"
-	"github.com/imanudd/clean-arch-pattern/internal/delivery/http/helper"
-	"github.com/imanudd/clean-arch-pattern/internal/repository"
-	"github.com/imanudd/clean-arch-pattern/pkg/auth"
+	"github.com/imanudd/inventorySvc-clean-architecture/config"
+	"github.com/imanudd/inventorySvc-clean-architecture/internal/delivery/http/helper"
+	"github.com/imanudd/inventorySvc-clean-architecture/internal/repository"
+	"github.com/imanudd/inventorySvc-clean-architecture/pkg/auth"
 )
 
 type AuthMiddleware struct {

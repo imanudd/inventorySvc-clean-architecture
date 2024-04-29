@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/imanudd/clean-arch-pattern/internal/domain"
+	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
 	"gorm.io/gorm"
 )
 

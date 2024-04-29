@@ -3,10 +3,10 @@ package cmd
 import (
 	"log"
 
-	"github.com/imanudd/clean-arch-pattern/config"
-	rest "github.com/imanudd/clean-arch-pattern/internal/delivery/http"
-	"github.com/imanudd/clean-arch-pattern/internal/repository"
-	"github.com/imanudd/clean-arch-pattern/internal/usecase"
+	"github.com/imanudd/inventorySvc-clean-architecture/config"
+	rest "github.com/imanudd/inventorySvc-clean-architecture/internal/delivery/http"
+	"github.com/imanudd/inventorySvc-clean-architecture/internal/repository"
+	"github.com/imanudd/inventorySvc-clean-architecture/internal/usecase"
 	"github.com/spf13/cobra"
 )
 

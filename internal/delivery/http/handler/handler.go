@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/imanudd/clean-arch-pattern/internal/usecase"
+	"github.com/imanudd/inventorySvc-clean-architecture/internal/usecase"
 )
 
 type Handler struct {

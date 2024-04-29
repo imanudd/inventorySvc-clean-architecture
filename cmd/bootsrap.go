@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/imanudd/clean-arch-pattern/config"
+	"github.com/imanudd/inventorySvc-clean-architecture/config"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"

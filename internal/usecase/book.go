@@ -5,9 +5,9 @@ import (
 	"errors"
 	"time"
 
-	"github.com/imanudd/clean-arch-pattern/config"
-	"github.com/imanudd/clean-arch-pattern/internal/domain"
-	"github.com/imanudd/clean-arch-pattern/internal/repository"
+	"github.com/imanudd/inventorySvc-clean-architecture/config"
+	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
+	"github.com/imanudd/inventorySvc-clean-architecture/internal/repository"
 )
 
 type BookUseCaseImpl interface {
