@@ -128,9 +128,5 @@ func (u *authorUseCase) GetListBookByAuthor(ctx context.Context, id int) ([]*dom
 		return nil, err
 	}
 
-	if len(books) < 1 {
-		return nil, errors.New("book not found")
-	}
-
 	return books, nil
 }
