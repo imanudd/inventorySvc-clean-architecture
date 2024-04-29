@@ -124,7 +124,7 @@ func (r *Route) RegisterRoutes() {
 		AuthorUseCase: r.AuthorUseCase,
 	})
 
-	inventorySvc := r.App.Group("inventorysvc")
+	inventorySvc := r.App.Group("/inventorysvc")
 	inventorySvc.POST("/auth/register", handler.Register)
 	inventorySvc.POST("/auth/login", handler.Login)
 
@@ -134,8 +134,8 @@ func (r *Route) RegisterRoutes() {
 	inventorySvc.GET("/managements/book/:id", auth.JWTAuth(handler.GetDetailBook))
 
 	inventorySvc.POST("/managements/author", auth.JWTAuth(handler.CreateAuthor))
-	inventorySvc.POST("managements/author/:id", auth.JWTAuth(handler.AddAuthorBook))
-	inventorySvc.GET("managements/author/:id/list", auth.JWTAuth(handler.GetListBookByAuthor))
+	inventorySvc.POST("/managements/author/:id", auth.JWTAuth(handler.AddAuthorBook))
+	inventorySvc.GET("/managements/author/:id/list", auth.JWTAuth(handler.GetListBookByAuthor))
 	inventorySvc.DELETE("managements/author/:id/books/:bookid", auth.JWTAuth(handler.DeleteBookByAuthor))
 
 }
