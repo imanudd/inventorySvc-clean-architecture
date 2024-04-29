@@ -1,5 +1,10 @@
 package domain
 
+type CreateAuthorAndBookRequest struct {
+	Author CreateAuthorRequest `json:"author"`
+	Book   CreateBookRequest   `json:"book"`
+}
+
 type AddAuthorBookRequest struct {
 	AuthorID int    `json:"-"`
 	BookName string `json:"book_name"`

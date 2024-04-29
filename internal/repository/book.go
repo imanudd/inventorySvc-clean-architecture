@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
+	"github.com/imanudd/inventorySvc-clean-architecture/pkg/auth"
 	"gorm.io/gorm"
 )
 
@@ -25,6 +26,15 @@ func NewBookRepository(db *gorm.DB) BookRepositoryImpl {
 	return &BookRepository{
 		db: db,
 	}
+}
+
+func (r *BookRepository) getConnection(ctx context.Context) *gorm.DB {
+	conn := auth.GetTxContext(ctx)
+	if conn == nil {
+		conn = r.db
+	}
+
+	return conn.WithContext(ctx)
 }
 
 func (r *BookRepository) GetListBookByAuthorID(ctx context.Context, authorID int) ([]*domain.Book, error) {
@@ -66,7 +76,7 @@ func (r *BookRepository) Update(ctx context.Context, req *domain.Book) error {
 }
 
 func (r *BookRepository) Create(ctx context.Context, req *domain.Book) error {
-	db := r.db.Model(&domain.Book{}).Create(&req)
+	db := r.getConnection(ctx).Model(&domain.Book{}).Create(&req)
 
 	return db.Error
 }

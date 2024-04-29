@@ -27,11 +27,12 @@ var restCommand = &cobra.Command{
 		userRepo := repository.NewUserRepository(pgDB)
 		bookRepo := repository.NewBookRepository(pgDB)
 		authorRepo := repository.NewAuthorRepository(pgDB)
+		trx := repository.NewTransactionRepository(pgDB)
 
 		//init usecase
-		authUseCase := usecase.NewAuthUseCase(cfg, userRepo)
-		bookUseCase := usecase.NewBookUseCase(cfg, bookRepo, authorRepo)
-		authorUseCase := usecase.NewAuthorUseCase(cfg, authorRepo, bookRepo)
+		authUseCase := usecase.NewAuthUseCase(cfg, trx, userRepo)
+		bookUseCase := usecase.NewBookUseCase(cfg, trx, bookRepo, authorRepo)
+		authorUseCase := usecase.NewAuthorUseCase(cfg, trx, authorRepo, bookRepo)
 
 		route := &rest.Route{
 			Config:        cfg,

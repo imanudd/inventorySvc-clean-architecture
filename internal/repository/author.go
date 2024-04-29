@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
+	"github.com/imanudd/inventorySvc-clean-architecture/pkg/auth"
 	"gorm.io/gorm"
 )
 
@@ -24,8 +25,17 @@ func NewAuthorRepository(db *gorm.DB) AuthorRepositoryImpl {
 	}
 }
 
+func (r *AuthorRepository) getConnection(ctx context.Context) *gorm.DB {
+	conn := auth.GetTxContext(ctx)
+	if conn == nil {
+		conn = r.db
+	}
+
+	return conn.WithContext(ctx)
+}
+
 func (r *AuthorRepository) Create(ctx context.Context, req *domain.Author) error {
-	return r.db.WithContext(ctx).Model(&domain.Author{}).Create(&req).Error
+	return r.getConnection(ctx).Model(&domain.Author{}).Create(&req).Error
 }
 
 func (r *AuthorRepository) GetByName(ctx context.Context, name string) (*domain.Author, error) {

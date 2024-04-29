@@ -19,13 +19,15 @@ type BookUseCaseImpl interface {
 
 type bookUseCase struct {
 	config     *config.MainConfig
+	trx        repository.TransactionRepositoryImpl
 	bookRepo   repository.BookRepositoryImpl
 	authorRepo repository.AuthorRepositoryImpl
 }
 
-func NewBookUseCase(config *config.MainConfig, bookRepo repository.BookRepositoryImpl, authorRepo repository.AuthorRepositoryImpl) BookUseCaseImpl {
+func NewBookUseCase(config *config.MainConfig, trx repository.TransactionRepositoryImpl, bookRepo repository.BookRepositoryImpl, authorRepo repository.AuthorRepositoryImpl) BookUseCaseImpl {
 	return &bookUseCase{
 		config:     config,
+		trx:        trx,
 		bookRepo:   bookRepo,
 		authorRepo: authorRepo,
 	}

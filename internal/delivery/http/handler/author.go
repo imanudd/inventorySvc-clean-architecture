@@ -10,6 +10,24 @@ import (
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
 )
 
+func (h *Handler) CreateAuthorAndBook(c *gin.Context) {
+	var req domain.CreateAuthorAndBookRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		helper.Error(c, http.StatusBadRequest, "error bad request")
+		return
+	}
+
+	err := h.AuthorUseCase.CreateAuthorAndBook(c, &req)
+	if err != nil {
+		helper.InternalError(c, err)
+		return
+	}
+
+	helper.Success(c, http.StatusCreated)
+
+}
+
 // CreateAuthor handler
 // @Summary create new author
 // @Description create new author

@@ -133,6 +133,7 @@ func (r *Route) RegisterRoutes() {
 	inventorySvc.DELETE("/managements/book/:id", auth.JWTAuth(handler.DeleteBook))
 	inventorySvc.GET("/managements/book/:id", auth.JWTAuth(handler.GetDetailBook))
 
+	inventorySvc.POST("/managements/author/book", auth.JWTAuth(handler.CreateAuthorAndBook))
 	inventorySvc.POST("/managements/author", auth.JWTAuth(handler.CreateAuthor))
 	inventorySvc.POST("/managements/author/:id", auth.JWTAuth(handler.AddAuthorBook))
 	inventorySvc.GET("/managements/author/:id/list", auth.JWTAuth(handler.GetListBookByAuthor))
