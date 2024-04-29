@@ -1,13 +1,16 @@
 package auth
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/imanudd/inventorySvc-clean-architecture/config"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
+	"gorm.io/gorm"
 )
 
 const (
@@ -89,4 +92,40 @@ func (a *AuthJwt) VerifyToken(tokenStr string) (userID int64, err error) {
 	}
 
 	return
+}
+
+func SetUserContext(c *gin.Context, users *domain.User) {
+	c.Set(userKey, users)
+}
+func SetTokenContext(c *gin.Context, token string) {
+	c.Set(tokenKey, token)
+}
+
+func SetTrx(ctx context.Context, tx *gorm.DB) context.Context {
+	return context.WithValue(ctx, "tx", tx)
+}
+
+func GetTokenContext(ctx context.Context) string {
+	raw, ok := ctx.Value(tokenKey).(string)
+	if ok {
+		return raw
+	}
+
+	return ""
+}
+
+func GetUserContext(ctx context.Context) *domain.User {
+	raw, ok := ctx.Value(userKey).(*domain.User)
+	if ok {
+		return raw
+	}
+	return nil
+}
+
+func GetTxContext(ctx context.Context) *gorm.DB {
+	raw, ok := ctx.Value("tx").(*gorm.DB)
+	if ok {
+		return raw
+	}
+	return nil
 }

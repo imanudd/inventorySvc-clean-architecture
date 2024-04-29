@@ -46,11 +46,14 @@ func (m *AuthMiddleware) JWTAuth(h ...gin.HandlerFunc) gin.HandlerFunc {
 			return
 		}
 
-		_, err = m.repo.GetByID(c, int(userID))
+		user, err := m.repo.GetByID(c, int(userID))
 		if err != nil {
 			helper.Error(c, http.StatusUnauthorized, err.Error())
 			return
 		}
+
+		auth.SetUserContext(c, user)
+		auth.SetTokenContext(c, token)
 
 		if len(h) > 0 {
 			h[0](c)
