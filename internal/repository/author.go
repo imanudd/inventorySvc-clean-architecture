@@ -40,7 +40,7 @@ func (r *AuthorRepository) Create(ctx context.Context, req *domain.Author) error
 
 func (r *AuthorRepository) GetByName(ctx context.Context, name string) (*domain.Author, error) {
 	var author domain.Author
-	db := r.db.Model(&domain.Author{}).Where("name ilike ?", name).First(&author)
+	db := r.db.Model(&author).Where("name ilike ?", name).First(&author)
 	if errors.Is(db.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
