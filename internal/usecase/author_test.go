@@ -234,42 +234,44 @@ func TestDeleteBookByAuthor(t *testing.T) {
 		)
 
 		Convey("resp err when get book by id", func() {
-			bookRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(nil, errResp)
+			bookRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(nil, errResp).AnyTimes()
+			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(author, nil).AnyTimes()
 			err := authorUseCase.DeleteBookByAuthor(ctx, authorID, bookID)
 			So(err, ShouldNotBeNil)
 		})
 
 		Convey("resp err when book doesnt exist", func() {
-			bookRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(nil, nil)
+			bookRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
+			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(author, nil).AnyTimes()
 			err := authorUseCase.DeleteBookByAuthor(ctx, authorID, bookID)
 			So(err, ShouldNotBeNil)
 		})
 
 		Convey("resp err when get author by id", func() {
-			bookRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(book, nil)
-			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(nil, errResp)
+			bookRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(book, nil).AnyTimes()
+			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(nil, errResp).AnyTimes()
 			err := authorUseCase.DeleteBookByAuthor(ctx, authorID, bookID)
 			So(err, ShouldNotBeNil)
 		})
 
 		Convey("resp err when author doesnt exist", func() {
-			bookRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(book, nil)
-			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(nil, nil)
+			bookRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(book, nil).AnyTimes()
+			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 			err := authorUseCase.DeleteBookByAuthor(ctx, authorID, bookID)
 			So(err, ShouldNotBeNil)
 		})
 
 		Convey("resp err when delete book by author", func() {
-			bookRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(book, nil)
-			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(author, nil)
+			bookRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(book, nil).AnyTimes()
+			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(author, nil).AnyTimes()
 			bookRepo.EXPECT().DeleteBookByAuthorID(gomock.Any(), gomock.Any(), gomock.Any()).Return(errResp)
 			err := authorUseCase.DeleteBookByAuthor(ctx, authorID, bookID)
 			So(err, ShouldNotBeNil)
 		})
 
 		Convey("resp success delete book by author", func() {
-			bookRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(book, nil)
-			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(author, nil)
+			bookRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(book, nil).AnyTimes()
+			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(author, nil).AnyTimes()
 			bookRepo.EXPECT().DeleteBookByAuthorID(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 			err := authorUseCase.DeleteBookByAuthor(ctx, authorID, bookID)
 			So(err, ShouldBeNil)

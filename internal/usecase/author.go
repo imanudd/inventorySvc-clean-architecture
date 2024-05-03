@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"golang.org/x/sync/errgroup"
 	"time"
 
 	"github.com/imanudd/inventorySvc-clean-architecture/config"
@@ -92,22 +93,43 @@ func (u *authorUseCase) CreateAuthor(ctx context.Context, req *domain.CreateAuth
 }
 
 func (u *authorUseCase) DeleteBookByAuthor(ctx context.Context, id int, bookId int) error {
-	book, err := u.bookRepo.GetByID(ctx, bookId)
-	if err != nil {
+	g, gCtx := errgroup.WithContext(ctx)
+
+	var (
+		book   *domain.Book
+		author *domain.Author
+		err    error
+	)
+
+	g.Go(func() error {
+		book, err = u.bookRepo.GetByID(gCtx, bookId)
+		if err != nil {
+			return err
+		}
+
+		if book == nil {
+			return errors.New("book not found")
+		}
+
+		return nil
+	})
+
+	g.Go(func() error {
+		author, err = u.authorRepo.GetByID(gCtx, id)
+		if err != nil {
+			return err
+		}
+
+		if author == nil {
+			return errors.New("author not found")
+		}
+
+		return nil
+
+	})
+
+	if err = g.Wait(); err != nil {
 		return err
-	}
-
-	if book == nil {
-		return errors.New("book not found")
-	}
-
-	author, err := u.authorRepo.GetByID(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	if author == nil {
-		return errors.New("author not found")
 	}
 
 	return u.bookRepo.DeleteBookByAuthorID(ctx, author.ID, book.ID)

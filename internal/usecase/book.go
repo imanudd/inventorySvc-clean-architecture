@@ -8,6 +8,7 @@ import (
 	"github.com/imanudd/inventorySvc-clean-architecture/config"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/repository"
+	"golang.org/x/sync/errgroup"
 )
 
 type BookUseCaseImpl interface {
@@ -75,22 +76,41 @@ func (s *bookUseCase) GetDetailBook(ctx context.Context, id int) (*domain.Detail
 }
 
 func (s *bookUseCase) UpdateBook(ctx context.Context, req *domain.UpdateBookRequest) error {
-	book, err := s.bookRepo.GetByID(ctx, req.ID)
-	if err != nil {
+	g, gCtx := errgroup.WithContext(ctx)
+
+	var (
+		book   *domain.Book
+		author *domain.Author
+		err    error
+	)
+
+	g.Go(func() error {
+		book, err = s.bookRepo.GetByID(gCtx, req.ID)
+		if err != nil {
+			return err
+		}
+
+		if book == nil {
+			return errors.New("book not found")
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		author, err = s.authorRepo.GetByID(gCtx, req.AuthorID)
+		if err != nil {
+			return err
+		}
+
+		if author == nil {
+			return errors.New("author not found")
+		}
+
+		return nil
+	})
+
+	if err = g.Wait(); err != nil {
 		return err
-	}
-
-	if book == nil {
-		return errors.New("book not found")
-	}
-
-	author, err := s.bookRepo.GetByID(ctx, req.AuthorID)
-	if err != nil {
-		return err
-	}
-
-	if author == nil {
-		return errors.New("author not found")
 	}
 
 	return s.bookRepo.Update(ctx, &domain.Book{
