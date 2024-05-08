@@ -6,15 +6,15 @@ import (
 
 type MainConfig struct {
 	ServiceName string `envconfig:"SERVICE_NAME" default:"inventorybook"`
-	ServicePort int    `envconfig:"HTTP_PORT" default:"8000"`
+	ServicePort int    `envconfig:"HTTP_PORT" default:"8005"`
 	Environment string `envconfig:"ENVIRONMENT" default:"development"`
 
 	PostgresHost     string `envconfig:"PGSQL_HOST" default:"localhost"`
 	PostgresPort     string `envconfig:"PGSQL_PORT" default:"5432"`
 	DBType           string `envconfig:"DB_TYPE" default:"postgres"`
-	PostgresUsername string `envconfig:"PGSQL_USERNAME" default:"root"`
+	PostgresUsername string `envconfig:"PGSQL_USERNAME" default:"postgres"`
 	PostgresPassword string `envconfig:"PGSQL_PASSWORD" default:"root"`
-	DBName           string `envconfig:"PGSQL_DBNAME" default:"inventorybook"`
+	DBName           string `envconfig:"PGSQL_DBNAME" default:"golang_clean_architecture"`
 	LogMode          bool   `envconfig:"LOG_MODE" default:"true"`
 	MaxIdleConns     int    `envconfig:"MAX_IDLE_CONNS" default:"10"`
 	MaxOpenConns     int    `envconfig:"MAX_OPEN_CONNS" default:"10"`
