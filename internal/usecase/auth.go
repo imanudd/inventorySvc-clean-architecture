@@ -8,6 +8,7 @@ import (
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/repository"
 	"github.com/imanudd/inventorySvc-clean-architecture/pkg/auth"
+	"github.com/imanudd/inventorySvc-clean-architecture/pkg/validator"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -31,6 +32,10 @@ func NewAuthUseCase(cfg *config.MainConfig, trx repository.TransactionRepository
 }
 
 func (a *authUseCase) Login(ctx context.Context, req *domain.LoginRequest) (*domain.LoginResponse, error) {
+	if err := validator.ValidateStruct(req); err != nil {
+		return nil, err
+	}
+
 	user, err := a.userRepo.GetByUsernameOrEmail(ctx, &domain.GetByUsernameOrEmail{
 		Username: req.Username,
 	})
@@ -60,7 +65,9 @@ func (a *authUseCase) Login(ctx context.Context, req *domain.LoginRequest) (*dom
 }
 
 func (a *authUseCase) Register(ctx context.Context, req *domain.RegisterRequest) (err error) {
-
+	if err := validator.ValidateStruct(req); err != nil {
+		return err
+	}
 	user, err := a.userRepo.GetByUsernameOrEmail(ctx, &domain.GetByUsernameOrEmail{
 		Username: req.Username,
 		Email:    req.Email,

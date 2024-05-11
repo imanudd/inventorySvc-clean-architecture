@@ -1,21 +1,21 @@
 package domain
 
 type CreateAuthorAndBookRequest struct {
-	Author CreateAuthorRequest `json:"author"`
-	Book   CreateBookRequest   `json:"book"`
+	Author CreateAuthorRequest `json:"author" validate:"required"`
+	Book   CreateBookRequest   `json:"book" validate:"required"`
 }
 
 type AddAuthorBookRequest struct {
 	AuthorID int    `json:"-"`
-	BookName string `json:"book_name"`
-	Title    string `json:"title"`
-	Price    int    `json:"price"`
+	BookName string `json:"book_name" validate:"required"`
+	Title    string `json:"title" validate:"required"`
+	Price    int    `json:"price" validate:"required"`
 }
 
 type CreateAuthorRequest struct {
-	Name        string `json:"name"`
-	Email       string `json:"email"`
-	PhoneNumber string `json:"phone_number"`
+	Name        string `json:"name" validate:"required"`
+	Email       string `json:"email" validate:"required,email"`
+	PhoneNumber string `json:"phone_number" validate:"required"`
 }
 
 type Author struct {

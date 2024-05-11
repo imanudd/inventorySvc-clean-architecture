@@ -3,12 +3,14 @@ package usecase
 import (
 	"context"
 	"errors"
-	"golang.org/x/sync/errgroup"
 	"time"
+
+	"golang.org/x/sync/errgroup"
 
 	"github.com/imanudd/inventorySvc-clean-architecture/config"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/repository"
+	"github.com/imanudd/inventorySvc-clean-architecture/pkg/validator"
 )
 
 type AuthorUseCaseImpl interface {
@@ -36,6 +38,10 @@ func NewAuthorUseCase(config *config.MainConfig, trx repository.TransactionRepos
 }
 
 func (u *authorUseCase) CreateAuthorAndBook(ctx context.Context, req *domain.CreateAuthorAndBookRequest) error {
+	if err := validator.ValidateStruct(req); err != nil {
+		return err
+	}
+
 	return u.trx.WithTransaction(ctx, func(txCtx context.Context) error {
 		err := u.authorRepo.Create(txCtx, &domain.Author{
 			ID:          req.Book.AuthorID,
@@ -58,6 +64,10 @@ func (u *authorUseCase) CreateAuthorAndBook(ctx context.Context, req *domain.Cre
 }
 
 func (u *authorUseCase) AddAuthorBook(ctx context.Context, req *domain.AddAuthorBookRequest) error {
+	if err := validator.ValidateStruct(req); err != nil {
+		return err
+	}
+
 	author, err := u.authorRepo.GetByID(ctx, req.AuthorID)
 	if err != nil {
 		return err
@@ -76,6 +86,10 @@ func (u *authorUseCase) AddAuthorBook(ctx context.Context, req *domain.AddAuthor
 }
 
 func (u *authorUseCase) CreateAuthor(ctx context.Context, req *domain.CreateAuthorRequest) error {
+	if err := validator.ValidateStruct(req); err != nil {
+		return err
+	}
+
 	author, err := u.authorRepo.GetByName(ctx, req.Name)
 	if err != nil {
 		return err

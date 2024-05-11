@@ -8,6 +8,7 @@ import (
 	"github.com/imanudd/inventorySvc-clean-architecture/config"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/repository"
+	"github.com/imanudd/inventorySvc-clean-architecture/pkg/validator"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -76,6 +77,10 @@ func (s *bookUseCase) GetDetailBook(ctx context.Context, id int) (*domain.Detail
 }
 
 func (s *bookUseCase) UpdateBook(ctx context.Context, req *domain.UpdateBookRequest) error {
+	if err := validator.ValidateStruct(req); err != nil {
+		return err
+	}
+
 	g, gCtx := errgroup.WithContext(ctx)
 
 	var (
@@ -123,6 +128,10 @@ func (s *bookUseCase) UpdateBook(ctx context.Context, req *domain.UpdateBookRequ
 }
 
 func (s *bookUseCase) AddBook(ctx context.Context, req *domain.CreateBookRequest) error {
+	if err := validator.ValidateStruct(req); err != nil {
+		return err
+	}
+
 	author, err := s.authorRepo.GetByID(ctx, req.AuthorID)
 	if err != nil {
 		return err
