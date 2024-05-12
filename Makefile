@@ -1,3 +1,16 @@
+
+.PHONY: migrate-up
+migrate-up:
+	@go run main.go migrate up
+
+.PHONY: migrate-down
+migrate-down:
+	@go run main.go migrate down
+
+.PHONY: migrate-fresh
+migrate-fresh:
+	@go run main.go migrate fresh
+
 run : 
 	go run main.go rest
 
