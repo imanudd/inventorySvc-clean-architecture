@@ -17,9 +17,15 @@ var rootCommand = &cobra.Command{
 }
 
 func Run() {
+	migrateCmd.AddCommand(migrateUpCmd)
+	migrateCmd.AddCommand(migrateDownCmd)
+	migrateCmd.AddCommand(migrateFreshCmd)
+
+	rootCommand.AddCommand(migrateCmd)
 	rootCommand.AddCommand(restCommand)
 
 	if err := rootCommand.Execute(); err != nil {
 		log.Fatal(err)
 	}
+
 }

@@ -1,31 +1,34 @@
 package cmd
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/imanudd/inventorySvc-clean-architecture/config"
-	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 )
 
-// init postgresql with sqlx
-func InitPostgreSQLSqlx(cfg *config.MainConfig) *sqlx.DB {
-	db, err := sqlx.Open("postgres", "postgres://username:password@localhost/dbname?sslmode=disable")
+func NewPostgres(cfg *config.MainConfig) *sql.DB {
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		cfg.PostgresHost,
+		cfg.PostgresPort,
+		cfg.PostgresUsername,
+		cfg.PostgresPassword,
+		cfg.DBName,
+	)
+	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
-		log.Fatalf(err.Error())
 		panic(err)
 	}
 
-	log.Printf("Successfully connected to database server")
-
-	// Check if the connection is successful
-	if err = db.Ping(); err != nil {
-		log.Fatalf(err.Error())
+	err = db.Ping()
+	if err != nil {
 		panic(err)
 	}
 
