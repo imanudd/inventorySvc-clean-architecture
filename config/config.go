@@ -20,6 +20,11 @@ type MainConfig struct {
 	MaxOpenConns     int    `envconfig:"MAX_OPEN_CONNS" default:"10"`
 	ConnMaxLifetime  int    `envconfig:"CONN_MAX_LIFETIME" default:"60"`
 
+	ElasticHost          string `envconfig:"ELASTIC_HOST" default:"https://localhost:9200"`
+	ElasticUsername      string `envconfig:"ELASTIC_USERNAME" default:"-"`
+	ElasticPassword      string `envconfig:"ELASTIC_PASSWORD" default:"-"`
+	ElasticCAFingerprint string `envconfig:"ELASTIC_CACERT" default:"-"`
+
 	SignatureKey string `envconfig:"JWT_SECRET_KEY" default:"secret"`
 }
 

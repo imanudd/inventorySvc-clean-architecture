@@ -8,6 +8,7 @@ import (
 	"github.com/imanudd/inventorySvc-clean-architecture/config"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/repository"
+	"github.com/imanudd/inventorySvc-clean-architecture/pkg/elasticsearch"
 	"github.com/imanudd/inventorySvc-clean-architecture/pkg/validator"
 	"golang.org/x/sync/errgroup"
 )
@@ -21,14 +22,16 @@ type BookUseCaseImpl interface {
 
 type bookUseCase struct {
 	config     *config.MainConfig
+	es         elasticsearch.ElasticsearchImpl
 	trx        repository.TransactionRepositoryImpl
 	bookRepo   repository.BookRepositoryImpl
 	authorRepo repository.AuthorRepositoryImpl
 }
 
-func NewBookUseCase(config *config.MainConfig, trx repository.TransactionRepositoryImpl, bookRepo repository.BookRepositoryImpl, authorRepo repository.AuthorRepositoryImpl) BookUseCaseImpl {
+func NewBookUseCase(config *config.MainConfig, es elasticsearch.ElasticsearchImpl, trx repository.TransactionRepositoryImpl, bookRepo repository.BookRepositoryImpl, authorRepo repository.AuthorRepositoryImpl) BookUseCaseImpl {
 	return &bookUseCase{
 		config:     config,
+		es:         es,
 		trx:        trx,
 		bookRepo:   bookRepo,
 		authorRepo: authorRepo,
@@ -139,6 +142,23 @@ func (s *bookUseCase) AddBook(ctx context.Context, req *domain.CreateBookRequest
 
 	if author == nil {
 		return errors.New("author not found")
+	}
+
+	books, err := s.bookRepo.GetLastBook(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = s.es.Save(ctx, elasticsearch.BOOK_DETAILS, &domain.CreateDetailBook{
+		Id:       books.ID + 1,
+		BookName: req.BookName,
+		Title:    req.Title,
+		Price:    req.Price,
+		Author:   *author,
+	})
+
+	if err != nil {
+		return err
 	}
 
 	book := &domain.Book{

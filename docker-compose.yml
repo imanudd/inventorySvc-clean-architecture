@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+  inventorybook-svc:
+    container_name: "inventorybook-svc"
+    image: "inventorybook-svc"
+    build:
+      context: .
+      dockerfile: "build/Dockerfile"
+    ports:
+      - "8000:8000"
+    restart: "on-failure"
+    environment:
+      - PGSQL_HOST=host.docker.internal
+      - PGSQL_PORT=5432
+      - PGSQL_USERNAME=root
+      - PGSQL_PASSWORD=root
+      - PGSQL_DBNAME=inventorybook

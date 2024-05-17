@@ -10,6 +10,7 @@ import (
 )
 
 type BookRepositoryImpl interface {
+	GetLastBook(ctx context.Context) (*domain.Book, error)
 	GetListBookByAuthorID(ctx context.Context, authorID int) ([]*domain.Book, error)
 	DeleteBookByAuthorID(ctx context.Context, authorID, bookID int) error
 	GetByID(ctx context.Context, id int) (*domain.Book, error)
@@ -26,6 +27,16 @@ func NewBookRepository(db *gorm.DB) BookRepositoryImpl {
 	return &BookRepository{
 		db: db,
 	}
+}
+
+func (r *BookRepository) GetLastBook(ctx context.Context) (*domain.Book, error) {
+	var books *domain.Book
+
+	if err := r.db.Order("created_at DESC").First(&books).Error; err != nil {
+		return nil, err
+	}
+
+	return books, nil
 }
 
 func (r *BookRepository) getConnection(ctx context.Context) *gorm.DB {

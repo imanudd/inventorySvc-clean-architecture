@@ -2,6 +2,14 @@ package domain
 
 import "time"
 
+type CreateDetailBook struct {
+	Id       int    `json:"id"`
+	BookName string ` json:"book_name"`
+	Title    string `json:"title"`
+	Price    int    ` son:"price"`
+	Author   Author `json:"author"`
+}
+
 type DetailBook struct {
 	ID         int       `gorm:"column:id" json:"id"`
 	AuthorID   int       `gorm:"column:author_id" json:"author_id"`

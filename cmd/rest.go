@@ -7,6 +7,7 @@ import (
 	rest "github.com/imanudd/inventorySvc-clean-architecture/internal/delivery/http"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/repository"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/usecase"
+	"github.com/imanudd/inventorySvc-clean-architecture/pkg/elasticsearch"
 	"github.com/spf13/cobra"
 )
 
@@ -21,6 +22,11 @@ var restCommand = &cobra.Command{
 			pgDB = pgDB.Debug()
 		}
 
+		client := InitElastic(cfg)
+
+		//init elasticsearch
+		es := elasticsearch.New(client)
+
 		app := rest.NewRest(cfg)
 
 		//init repo
@@ -31,7 +37,7 @@ var restCommand = &cobra.Command{
 
 		//init usecase
 		authUseCase := usecase.NewAuthUseCase(cfg, trx, userRepo)
-		bookUseCase := usecase.NewBookUseCase(cfg, trx, bookRepo, authorRepo)
+		bookUseCase := usecase.NewBookUseCase(cfg, es, trx, bookRepo, authorRepo)
 		authorUseCase := usecase.NewAuthorUseCase(cfg, trx, authorRepo, bookRepo)
 
 		route := &rest.Route{

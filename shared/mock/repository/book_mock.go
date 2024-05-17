@@ -92,6 +92,21 @@ func (mr *MockBookRepositoryImplMockRecorder) GetByID(ctx, id interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockBookRepositoryImpl)(nil).GetByID), ctx, id)
 }
 
+// GetLastBook mocks base method.
+func (m *MockBookRepositoryImpl) GetLastBook(ctx context.Context) (*domain.Book, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLastBook", ctx)
+	ret0, _ := ret[0].(*domain.Book)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLastBook indicates an expected call of GetLastBook.
+func (mr *MockBookRepositoryImplMockRecorder) GetLastBook(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLastBook", reflect.TypeOf((*MockBookRepositoryImpl)(nil).GetLastBook), ctx)
+}
+
 // GetListBookByAuthorID mocks base method.
 func (m *MockBookRepositoryImpl) GetListBookByAuthorID(ctx context.Context, authorID int) ([]*domain.Book, error) {
 	m.ctrl.T.Helper()

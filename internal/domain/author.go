@@ -19,10 +19,10 @@ type CreateAuthorRequest struct {
 }
 
 type Author struct {
-	ID          int    `gorm:"column:id"`
-	Name        string `gorm:"column:name"`
-	Email       string `gorm:"column:email"`
-	PhoneNumber string `gorm:"column:phone_number"`
+	ID          int    `gorm:"column:id" json:"id"`
+	Name        string `gorm:"column:name" json:"name"`
+	Email       string `gorm:"column:email" json:"email"`
+	PhoneNumber string `gorm:"column:phone_number" json:"phone_number"`
 }
 
 func (Author) TableName() string {

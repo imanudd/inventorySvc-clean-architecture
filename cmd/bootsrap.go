@@ -6,12 +6,42 @@ import (
 	"log"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/imanudd/inventorySvc-clean-architecture/config"
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 )
+
+func InitElastic(cfg *config.MainConfig) *elasticsearch.Client {
+
+	es, err := elasticsearch.NewClient(elasticsearch.Config{
+		Addresses: []string{
+			cfg.ElasticHost,
+		},
+		Username:               cfg.ElasticUsername,
+		Password:               cfg.ElasticPassword,
+		CertificateFingerprint: cfg.ElasticCAFingerprint,
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	res, err := es.Info()
+	if err != nil {
+		log.Fatalf("Error getting response: %s", err)
+	}
+
+	defer res.Body.Close()
+	log.Println(res)
+
+	log.Println("succesfully connected to elastic")
+
+	return es
+
+}
 
 func NewPostgres(cfg *config.MainConfig) *sql.DB {
 	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
