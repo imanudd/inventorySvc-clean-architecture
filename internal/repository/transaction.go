@@ -23,9 +23,10 @@ func NewTransactionRepository(db *gorm.DB) TransactionRepositoryImpl {
 }
 
 func (r *TransactionRepository) WithTransaction(ctx context.Context, fn func(txCtx context.Context) error) error {
-	tx := r.db.Begin()
+	txCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
-	txCtx := auth.SetTrx(ctx, tx)
+	tx := r.db.WithContext(txCtx).Begin()
 
 	defer func() {
 		if recover() != nil || ctx.Done() != nil {
@@ -33,11 +34,20 @@ func (r *TransactionRepository) WithTransaction(ctx context.Context, fn func(txC
 		}
 	}()
 
-	err := fn(txCtx)
+	err := fn(auth.SetTrx(ctx, tx))
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("error db %v", err)
 	}
 
 	return tx.Commit().Error
+}
+
+func (r *TransactionRepository) tx(ctx context.Context) *gorm.DB {
+	conn := auth.GetTxContext(ctx)
+	if conn == nil {
+		conn = r.db.WithContext(ctx)
+	}
+
+	return conn.WithContext(ctx)
 }

@@ -7,7 +7,6 @@ import (
 	rest "github.com/imanudd/inventorySvc-clean-architecture/internal/delivery/http"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/repository"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/usecase"
-	"github.com/imanudd/inventorySvc-clean-architecture/pkg/elasticsearch"
 	"github.com/spf13/cobra"
 )
 
@@ -22,31 +21,20 @@ var restCommand = &cobra.Command{
 			pgDB = pgDB.Debug()
 		}
 
-		client := InitElastic(cfg)
+		// client := InitElastic(cfg)
 
 		//init elasticsearch
-		es := elasticsearch.New(client)
+		// es := elasticsearch.New(client)
 
 		app := rest.NewRest(cfg)
-
-		//init repo
-		userRepo := repository.NewUserRepository(pgDB)
-		bookRepo := repository.NewBookRepository(pgDB)
-		authorRepo := repository.NewAuthorRepository(pgDB)
-		trx := repository.NewTransactionRepository(pgDB)
-
-		//init usecase
-		authUseCase := usecase.NewAuthUseCase(cfg, trx, userRepo)
-		bookUseCase := usecase.NewBookUseCase(cfg, es, trx, bookRepo, authorRepo)
-		authorUseCase := usecase.NewAuthorUseCase(cfg, trx, authorRepo, bookRepo)
+		repo := repository.NewRepository(pgDB)
+		useCase := usecase.NewUsecase(cfg, repo)
 
 		route := &rest.Route{
-			Config:        cfg,
-			App:           app,
-			AuthUseCase:   authUseCase,
-			BookUseCase:   bookUseCase,
-			AuthorUseCase: authorUseCase,
-			UserRepo:      userRepo,
+			Config:     cfg,
+			App:        app,
+			UseCase:    useCase,
+			Repository: repo,
 		}
 
 		route.RegisterRoutes()

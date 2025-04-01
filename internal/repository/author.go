@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
-	"github.com/imanudd/inventorySvc-clean-architecture/pkg/auth"
 	"gorm.io/gorm"
 )
 
@@ -16,31 +15,24 @@ type AuthorRepositoryImpl interface {
 }
 
 type AuthorRepository struct {
-	db *gorm.DB
+	TransactionRepository
 }
 
 func NewAuthorRepository(db *gorm.DB) AuthorRepositoryImpl {
 	return &AuthorRepository{
-		db: db,
+		TransactionRepository: TransactionRepository{
+			db: db,
+		},
 	}
-}
-
-func (r *AuthorRepository) getConnection(ctx context.Context) *gorm.DB {
-	conn := auth.GetTxContext(ctx)
-	if conn == nil {
-		conn = r.db
-	}
-
-	return conn.WithContext(ctx)
 }
 
 func (r *AuthorRepository) Create(ctx context.Context, req *domain.Author) error {
-	return r.getConnection(ctx).Model(&domain.Author{}).Create(&req).Error
+	return r.tx(ctx).Model(&domain.Author{}).Create(&req).Error
 }
 
 func (r *AuthorRepository) GetByName(ctx context.Context, name string) (*domain.Author, error) {
 	var author domain.Author
-	db := r.db.Model(&author).Where("name ilike ?", name).First(&author)
+	db := r.tx(ctx).Model(&author).Where("name ilike ?", name).First(&author)
 	if errors.Is(db.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
@@ -54,7 +46,7 @@ func (r *AuthorRepository) GetByName(ctx context.Context, name string) (*domain.
 
 func (r *AuthorRepository) GetByID(ctx context.Context, id int) (*domain.Author, error) {
 	var author domain.Author
-	db := r.db.Model(&domain.Author{}).Where("id = ?", id).First(&author)
+	db := r.tx(ctx).Model(&domain.Author{}).Where("id = ?", id).First(&author)
 	if errors.Is(db.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}

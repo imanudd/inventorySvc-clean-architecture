@@ -13,10 +13,10 @@ import (
 
 type AuthMiddleware struct {
 	cfg  *config.MainConfig
-	repo repository.UserRepositoryImpl
+	repo repository.RepositoryImpl
 }
 
-func NewAuthMiddleware(cfg *config.MainConfig, repo repository.UserRepositoryImpl) *AuthMiddleware {
+func NewAuthMiddleware(cfg *config.MainConfig, repo repository.RepositoryImpl) *AuthMiddleware {
 	return &AuthMiddleware{
 		cfg:  cfg,
 		repo: repo,
@@ -46,7 +46,7 @@ func (m *AuthMiddleware) JWTAuth(h ...gin.HandlerFunc) gin.HandlerFunc {
 			return
 		}
 
-		user, err := m.repo.GetByID(c, int(userID))
+		user, err := m.repo.GetUserRepo().GetByID(c, int(userID))
 		if err != nil {
 			helper.Error(c, http.StatusUnauthorized, err.Error())
 			return

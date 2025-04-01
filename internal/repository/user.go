@@ -15,18 +15,20 @@ type UserRepositoryImpl interface {
 }
 
 type UserRepository struct {
-	db *gorm.DB
+	TransactionRepository
 }
 
 func NewUserRepository(db *gorm.DB) UserRepositoryImpl {
 	return &UserRepository{
-		db: db,
+		TransactionRepository: TransactionRepository{
+			db: db,
+		},
 	}
 }
 
 func (r *UserRepository) GetByID(ctx context.Context, id int) (*domain.User, error) {
 	var user domain.User
-	db := r.db.Model(&user).Where("id = ?", id).First(&user)
+	db := r.tx(ctx).Model(&user).Where("id = ?", id).First(&user)
 	if err := db.Error; err != nil {
 		return nil, err
 	}
@@ -36,7 +38,7 @@ func (r *UserRepository) GetByID(ctx context.Context, id int) (*domain.User, err
 
 func (r *UserRepository) GetByUsernameOrEmail(ctx context.Context, req *domain.GetByUsernameOrEmail) (*domain.User, error) {
 	var user *domain.User
-	db := r.db.WithContext(ctx).Model(&domain.User{}).Where("username ilike ? or email ilike ?", req.Username, req.Email).First(&user)
+	db := r.tx(ctx).Model(&domain.User{}).Where("username ilike ? or email ilike ?", req.Username, req.Email).First(&user)
 
 	if errors.Is(db.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
@@ -50,7 +52,7 @@ func (r *UserRepository) GetByUsernameOrEmail(ctx context.Context, req *domain.G
 }
 
 func (r *UserRepository) RegisterUser(ctx context.Context, req *domain.User) error {
-	db := r.db.WithContext(ctx).Model(&domain.User{}).Create(&req)
+	db := r.tx(ctx).Model(&domain.User{}).Create(&req)
 
 	return db.Error
 }

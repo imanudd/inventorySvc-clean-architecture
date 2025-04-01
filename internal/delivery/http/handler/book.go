@@ -29,7 +29,7 @@ func (h *Handler) AddBook(c *gin.Context) {
 		return
 	}
 
-	err := h.BookUseCase.AddBook(c, &req)
+	err := h.usecase.GetBookUseCase().AddBook(c, &req)
 	if err != nil {
 		helper.InternalError(c, err)
 		return
@@ -66,7 +66,7 @@ func (h *Handler) UpdateBook(c *gin.Context) {
 		return
 	}
 
-	err = h.BookUseCase.UpdateBook(c, &req)
+	err = h.usecase.GetBookUseCase().UpdateBook(c, &req)
 	if err != nil {
 		helper.InternalError(c, err)
 		return
@@ -95,7 +95,7 @@ func (h *Handler) DeleteBook(c *gin.Context) {
 		return
 	}
 
-	err = h.BookUseCase.DeleteBook(c, id)
+	err = h.usecase.GetBookUseCase().DeleteBook(c, id)
 	if err != nil {
 		helper.InternalError(c, err)
 		return
@@ -124,7 +124,7 @@ func (h *Handler) GetDetailBook(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.BookUseCase.GetDetailBook(c, id)
+	resp, err := h.usecase.GetBookUseCase().GetDetailBook(c, id)
 	if err != nil {
 		helper.InternalError(c, err)
 		return

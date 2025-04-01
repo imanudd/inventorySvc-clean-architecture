@@ -18,16 +18,14 @@ type AuthUseCaseImpl interface {
 }
 
 type authUseCase struct {
-	cfg      *config.MainConfig
-	trx      repository.TransactionRepositoryImpl
-	userRepo repository.UserRepositoryImpl
+	cfg  *config.MainConfig
+	repo repository.RepositoryImpl
 }
 
-func NewAuthUseCase(cfg *config.MainConfig, trx repository.TransactionRepositoryImpl, userRepo repository.UserRepositoryImpl) AuthUseCaseImpl {
+func NewAuthUseCase(cfg *config.MainConfig, repo repository.RepositoryImpl) AuthUseCaseImpl {
 	return &authUseCase{
-		cfg:      cfg,
-		trx:      trx,
-		userRepo: userRepo,
+		cfg:  cfg,
+		repo: repo,
 	}
 }
 
@@ -36,7 +34,7 @@ func (a *authUseCase) Login(ctx context.Context, req *domain.LoginRequest) (*dom
 		return nil, err
 	}
 
-	user, err := a.userRepo.GetByUsernameOrEmail(ctx, &domain.GetByUsernameOrEmail{
+	user, err := a.repo.GetUserRepo().GetByUsernameOrEmail(ctx, &domain.GetByUsernameOrEmail{
 		Username: req.Username,
 	})
 	if err != nil {
@@ -68,7 +66,8 @@ func (a *authUseCase) Register(ctx context.Context, req *domain.RegisterRequest)
 	if err := validator.ValidateStruct(req); err != nil {
 		return err
 	}
-	user, err := a.userRepo.GetByUsernameOrEmail(ctx, &domain.GetByUsernameOrEmail{
+
+	user, err := a.repo.GetUserRepo().GetByUsernameOrEmail(ctx, &domain.GetByUsernameOrEmail{
 		Username: req.Username,
 		Email:    req.Email,
 	})
@@ -85,7 +84,7 @@ func (a *authUseCase) Register(ctx context.Context, req *domain.RegisterRequest)
 		return errors.New("error when hashing password")
 	}
 
-	return a.userRepo.RegisterUser(ctx, &domain.User{
+	return a.repo.GetUserRepo().RegisterUser(ctx, &domain.User{
 		Username: req.Username,
 		Password: string(hash),
 		Email:    req.Email,

@@ -18,7 +18,7 @@ func (h *Handler) CreateAuthorAndBook(c *gin.Context) {
 		return
 	}
 
-	err := h.AuthorUseCase.CreateAuthorAndBook(c, &req)
+	err := h.usecase.GetAuthorUseCase().CreateAuthorAndBook(c, &req)
 	if err != nil {
 		helper.InternalError(c, err)
 		return
@@ -48,7 +48,7 @@ func (h *Handler) CreateAuthor(c *gin.Context) {
 		return
 	}
 
-	err := h.AuthorUseCase.CreateAuthor(c, &req)
+	err := h.usecase.GetAuthorUseCase().CreateAuthor(c, &req)
 	if err != nil {
 		helper.InternalError(c, err)
 		return
@@ -86,7 +86,7 @@ func (h *Handler) AddAuthorBook(c *gin.Context) {
 		return
 	}
 
-	err = h.AuthorUseCase.AddAuthorBook(c, &req)
+	err = h.usecase.GetAuthorUseCase().AddAuthorBook(c, &req)
 	if err != nil {
 		helper.InternalError(c, err)
 		return
@@ -115,7 +115,7 @@ func (h *Handler) GetListBookByAuthor(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.AuthorUseCase.GetListBookByAuthor(c, id)
+	resp, err := h.usecase.GetAuthorUseCase().GetListBookByAuthor(c, id)
 	if err != nil {
 		helper.InternalError(c, err)
 		return
@@ -151,7 +151,7 @@ func (h *Handler) DeleteBookByAuthor(c *gin.Context) {
 		return
 	}
 
-	err = h.AuthorUseCase.DeleteBookByAuthor(c, id, bookId)
+	err = h.usecase.GetAuthorUseCase().DeleteBookByAuthor(c, id, bookId)
 	if err != nil {
 		helper.InternalError(c, err)
 		return

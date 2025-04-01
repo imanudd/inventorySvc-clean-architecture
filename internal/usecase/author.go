@@ -22,18 +22,14 @@ type AuthorUseCaseImpl interface {
 }
 
 type authorUseCase struct {
-	config     *config.MainConfig
-	trx        repository.TransactionRepositoryImpl
-	authorRepo repository.AuthorRepositoryImpl
-	bookRepo   repository.BookRepositoryImpl
+	config *config.MainConfig
+	repo   repository.RepositoryImpl
 }
 
-func NewAuthorUseCase(config *config.MainConfig, trx repository.TransactionRepositoryImpl, authorRepo repository.AuthorRepositoryImpl, bookRepo repository.BookRepositoryImpl) AuthorUseCaseImpl {
+func NewAuthorUseCase(config *config.MainConfig, repo repository.RepositoryImpl) AuthorUseCaseImpl {
 	return &authorUseCase{
-		config:     config,
-		trx:        trx,
-		authorRepo: authorRepo,
-		bookRepo:   bookRepo,
+		config: config,
+		repo:   repo,
 	}
 }
 
@@ -42,8 +38,8 @@ func (u *authorUseCase) CreateAuthorAndBook(ctx context.Context, req *domain.Cre
 		return err
 	}
 
-	return u.trx.WithTransaction(ctx, func(txCtx context.Context) error {
-		err := u.authorRepo.Create(txCtx, &domain.Author{
+	return u.repo.GetTransactionRepo().WithTransaction(ctx, func(txCtx context.Context) error {
+		err := u.repo.GetAuthorRepo().Create(txCtx, &domain.Author{
 			ID:          req.Book.AuthorID,
 			Name:        req.Author.Name,
 			Email:       req.Author.Email,
@@ -53,13 +49,18 @@ func (u *authorUseCase) CreateAuthorAndBook(ctx context.Context, req *domain.Cre
 			return err
 		}
 
-		return u.bookRepo.Create(txCtx, &domain.Book{
+		err = u.repo.GetBookRepo().Create(txCtx, &domain.Book{
 			AuthorID:  req.Book.AuthorID,
 			BookName:  req.Book.BookName,
 			Title:     req.Book.Title,
 			Price:     req.Book.Price,
 			CreatedAt: time.Now(),
 		})
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
 }
 
@@ -68,7 +69,7 @@ func (u *authorUseCase) AddAuthorBook(ctx context.Context, req *domain.AddAuthor
 		return err
 	}
 
-	author, err := u.authorRepo.GetByID(ctx, req.AuthorID)
+	author, err := u.repo.GetAuthorRepo().GetByID(ctx, req.AuthorID)
 	if err != nil {
 		return err
 	}
@@ -77,7 +78,7 @@ func (u *authorUseCase) AddAuthorBook(ctx context.Context, req *domain.AddAuthor
 		return errors.New("author not found")
 	}
 
-	return u.bookRepo.Create(ctx, &domain.Book{
+	return u.repo.GetBookRepo().Create(ctx, &domain.Book{
 		AuthorID: author.ID,
 		BookName: req.BookName,
 		Title:    req.Title,
@@ -90,7 +91,7 @@ func (u *authorUseCase) CreateAuthor(ctx context.Context, req *domain.CreateAuth
 		return err
 	}
 
-	author, err := u.authorRepo.GetByName(ctx, req.Name)
+	author, err := u.repo.GetAuthorRepo().GetByName(ctx, req.Name)
 	if err != nil {
 		return err
 	}
@@ -99,7 +100,7 @@ func (u *authorUseCase) CreateAuthor(ctx context.Context, req *domain.CreateAuth
 		return errors.New("author already exist")
 	}
 
-	return u.authorRepo.Create(ctx, &domain.Author{
+	return u.repo.GetAuthorRepo().Create(ctx, &domain.Author{
 		Name:        req.Name,
 		Email:       req.Email,
 		PhoneNumber: req.PhoneNumber,
@@ -116,7 +117,7 @@ func (u *authorUseCase) DeleteBookByAuthor(ctx context.Context, id int, bookId i
 	)
 
 	g.Go(func() error {
-		book, err = u.bookRepo.GetByID(gCtx, bookId)
+		book, err = u.repo.GetBookRepo().GetByID(gCtx, bookId)
 		if err != nil {
 			return err
 		}
@@ -129,7 +130,7 @@ func (u *authorUseCase) DeleteBookByAuthor(ctx context.Context, id int, bookId i
 	})
 
 	g.Go(func() error {
-		author, err = u.authorRepo.GetByID(gCtx, id)
+		author, err = u.repo.GetAuthorRepo().GetByID(gCtx, id)
 		if err != nil {
 			return err
 		}
@@ -146,11 +147,11 @@ func (u *authorUseCase) DeleteBookByAuthor(ctx context.Context, id int, bookId i
 		return err
 	}
 
-	return u.bookRepo.DeleteBookByAuthorID(ctx, author.ID, book.ID)
+	return u.repo.GetBookRepo().DeleteBookByAuthorID(ctx, author.ID, book.ID)
 }
 
 func (u *authorUseCase) GetListBookByAuthor(ctx context.Context, id int) ([]*domain.Book, error) {
-	author, err := u.authorRepo.GetByID(ctx, id)
+	author, err := u.repo.GetAuthorRepo().GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +160,7 @@ func (u *authorUseCase) GetListBookByAuthor(ctx context.Context, id int) ([]*dom
 		return nil, errors.New("author not found")
 	}
 
-	books, err := u.bookRepo.GetListBookByAuthorID(ctx, author.ID)
+	books, err := u.repo.GetBookRepo().GetListBookByAuthorID(ctx, author.ID)
 	if err != nil {
 		return nil, err
 	}

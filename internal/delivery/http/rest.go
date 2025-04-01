@@ -105,24 +105,18 @@ func gracefulShutdown(srv *http.Server) error {
 }
 
 type Route struct {
-	Config        *config.MainConfig
-	App           *gin.Engine
-	AuthUseCase   usecase.AuthUseCaseImpl
-	BookUseCase   usecase.BookUseCaseImpl
-	AuthorUseCase usecase.AuthorUseCaseImpl
-	UserRepo      repository.UserRepositoryImpl
+	Config     *config.MainConfig
+	App        *gin.Engine
+	UseCase    usecase.Usecase
+	Repository repository.RepositoryImpl
 }
 
 func (r *Route) RegisterRoutes() {
 	r.App.Use(gin.Recovery())
 
-	auth := middleware.NewAuthMiddleware(r.Config, r.UserRepo)
+	auth := middleware.NewAuthMiddleware(r.Config, r.Repository)
 
-	handler := handler.NewHandler(&handler.Handler{
-		AuthUseCase:   r.AuthUseCase,
-		BookUseCase:   r.BookUseCase,
-		AuthorUseCase: r.AuthorUseCase,
-	})
+	handler := handler.NewHandler(r.UseCase)
 
 	inventorySvc := r.App.Group("/inventorysvc")
 	inventorySvc.POST("/auth/register", handler.Register)

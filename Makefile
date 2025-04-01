@@ -18,6 +18,7 @@ docs :
 	swag init -g internal/delivery/http/rest.go --parseDependency true --parseInternal
 
 mock-repository:
+	mockgen -source=./internal/repository/repository.go -destination=./shared/mock/repository/repository_mock.go -package repository
 	mockgen -source=./internal/repository/author.go -destination=./shared/mock/repository/author_mock.go -package repository
 	mockgen -source=./internal/repository/user.go -destination=./shared/mock/repository/user_mock.go -package repository
 	mockgen -source=./internal/repository/book.go -destination=./shared/mock/repository/book_mock.go -package repository

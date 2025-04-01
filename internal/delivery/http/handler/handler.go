@@ -5,15 +5,11 @@ import (
 )
 
 type Handler struct {
-	AuthUseCase   usecase.AuthUseCaseImpl
-	BookUseCase   usecase.BookUseCaseImpl
-	AuthorUseCase usecase.AuthorUseCaseImpl
+	usecase usecase.Usecase
 }
 
-func NewHandler(useCase *Handler) *Handler {
+func NewHandler(usecase usecase.Usecase) *Handler {
 	return &Handler{
-		AuthUseCase:   useCase.AuthUseCase,
-		BookUseCase:   useCase.BookUseCase,
-		AuthorUseCase: useCase.AuthorUseCase,
+		usecase: usecase,
 	}
 }

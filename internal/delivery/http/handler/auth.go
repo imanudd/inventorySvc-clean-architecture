@@ -27,7 +27,7 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.AuthUseCase.Login(c, req)
+	resp, err := h.usecase.GetAuthUseCase().Login(c, req)
 	if err != nil {
 		helper.InternalError(c, err)
 		return
@@ -55,7 +55,7 @@ func (h *Handler) Register(c *gin.Context) {
 		return
 	}
 
-	err := h.AuthUseCase.Register(c, req)
+	err := h.usecase.GetAuthUseCase().Register(c, req)
 	if err != nil {
 		helper.InternalError(c, err)
 		return

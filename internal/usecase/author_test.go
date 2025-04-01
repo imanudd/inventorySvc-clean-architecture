@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
 	"github.com/imanudd/inventorySvc-clean-architecture/config"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
 	repositoryMock "github.com/imanudd/inventorySvc-clean-architecture/shared/mock/repository"
 	. "github.com/smartystreets/goconvey/convey"
+	"go.uber.org/mock/gomock"
 )
 
 func TestCreateAuthorAndBook(t *testing.T) {
@@ -19,11 +19,12 @@ func TestCreateAuthorAndBook(t *testing.T) {
 		defer ctrl.Finish()
 
 		config := &config.MainConfig{}
+		repoMock := repositoryMock.NewMockRepositoryImpl(ctrl)
 		authorRepo := repositoryMock.NewMockAuthorRepositoryImpl(ctrl)
 		bookRepo := repositoryMock.NewMockBookRepositoryImpl(ctrl)
 		trx := repositoryMock.NewMockTransactionRepositoryImpl(ctrl)
 
-		authorUseCase := NewAuthorUseCase(config, trx, authorRepo, bookRepo)
+		authorUseCase := NewAuthorUseCase(config, repoMock)
 
 		var (
 			ctx     = context.Background()
@@ -52,6 +53,9 @@ func TestCreateAuthorAndBook(t *testing.T) {
 
 		Convey("transaction schema", func() {
 			Convey("error when create author", func() {
+				repoMock.EXPECT().GetTransactionRepo().Return(trx)
+				repoMock.EXPECT().GetAuthorRepo().Return(authorRepo)
+
 				trx.EXPECT().WithTransaction(gomock.Any(), gomock.Any()).Do(func(ctx context.Context, fn func(txCtx context.Context) error) {
 					authorRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(errResp)
 					err := fn(ctx)
@@ -62,6 +66,10 @@ func TestCreateAuthorAndBook(t *testing.T) {
 			})
 
 			Convey("error when create book", func() {
+				repoMock.EXPECT().GetTransactionRepo().Return(trx)
+				repoMock.EXPECT().GetAuthorRepo().Return(authorRepo)
+				repoMock.EXPECT().GetBookRepo().Return(bookRepo)
+
 				trx.EXPECT().WithTransaction(gomock.Any(), gomock.Any()).Do(func(ctx context.Context, fn func(txCtx context.Context) error) {
 					authorRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
 					bookRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(errResp)
@@ -73,6 +81,10 @@ func TestCreateAuthorAndBook(t *testing.T) {
 			})
 
 			Convey("commit", func() {
+				repoMock.EXPECT().GetTransactionRepo().Return(trx)
+				repoMock.EXPECT().GetAuthorRepo().Return(authorRepo)
+				repoMock.EXPECT().GetBookRepo().Return(bookRepo)
+
 				trx.EXPECT().WithTransaction(gomock.Any(), gomock.Any()).Do(func(ctx context.Context, fn func(txCtx context.Context) error) {
 					authorRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
 					bookRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
@@ -92,9 +104,9 @@ func TestAddAuthorBook(t *testing.T) {
 		defer ctrl.Finish()
 
 		config := &config.MainConfig{}
+		repoMock := repositoryMock.NewMockRepositoryImpl(ctrl)
 		authorRepo := repositoryMock.NewMockAuthorRepositoryImpl(ctrl)
 		bookRepo := repositoryMock.NewMockBookRepositoryImpl(ctrl)
-		trx := repositoryMock.NewMockTransactionRepositoryImpl(ctrl)
 
 		var (
 			ctx = context.Background()
@@ -115,7 +127,7 @@ func TestAddAuthorBook(t *testing.T) {
 			errResp = errors.New("error")
 		)
 
-		authorUseCase := NewAuthorUseCase(config, trx, authorRepo, bookRepo)
+		authorUseCase := NewAuthorUseCase(config, repoMock)
 
 		Convey("resp err validator", func() {
 			req.BookName = ""
@@ -124,18 +136,23 @@ func TestAddAuthorBook(t *testing.T) {
 		})
 
 		Convey("resp err when get author by id", func() {
+			repoMock.EXPECT().GetAuthorRepo().Return(authorRepo)
 			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(nil, errResp)
 			err := authorUseCase.AddAuthorBook(ctx, req)
 			So(err, ShouldNotBeNil)
 		})
 
 		Convey("resp err when author not found ", func() {
+			repoMock.EXPECT().GetAuthorRepo().Return(authorRepo)
 			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(nil, nil)
 			err := authorUseCase.AddAuthorBook(ctx, req)
 			So(err, ShouldNotBeNil)
 		})
 
 		Convey("resp err when create book by author ", func() {
+			repoMock.EXPECT().GetAuthorRepo().Return(authorRepo)
+			repoMock.EXPECT().GetBookRepo().Return(bookRepo)
+
 			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(author, nil)
 			bookRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(errResp)
 			err := authorUseCase.AddAuthorBook(ctx, req)
@@ -143,6 +160,9 @@ func TestAddAuthorBook(t *testing.T) {
 		})
 
 		Convey("resp success add book by author ", func() {
+			repoMock.EXPECT().GetAuthorRepo().Return(authorRepo)
+			repoMock.EXPECT().GetBookRepo().Return(bookRepo)
+
 			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(author, nil)
 			bookRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
 			err := authorUseCase.AddAuthorBook(ctx, req)
@@ -158,11 +178,10 @@ func TestCreateAuthor(t *testing.T) {
 		defer ctrl.Finish()
 
 		config := &config.MainConfig{}
+		repoMock := repositoryMock.NewMockRepositoryImpl(ctrl)
 		authorRepo := repositoryMock.NewMockAuthorRepositoryImpl(ctrl)
-		bookRepo := repositoryMock.NewMockBookRepositoryImpl(ctrl)
-		trx := repositoryMock.NewMockTransactionRepositoryImpl(ctrl)
 
-		authorUseCase := NewAuthorUseCase(config, trx, authorRepo, bookRepo)
+		authorUseCase := NewAuthorUseCase(config, repoMock)
 
 		var (
 			ctx = context.Background()
@@ -187,18 +206,24 @@ func TestCreateAuthor(t *testing.T) {
 		})
 
 		Convey("resp err when get author by name", func() {
+			repoMock.EXPECT().GetAuthorRepo().Return(authorRepo)
+
 			authorRepo.EXPECT().GetByName(gomock.Any(), gomock.Any()).Return(nil, errResp)
 			err := authorUseCase.CreateAuthor(ctx, req)
 			So(err, ShouldNotBeNil)
 		})
 
 		Convey("resp err author is already exist", func() {
+			repoMock.EXPECT().GetAuthorRepo().Return(authorRepo)
+
 			authorRepo.EXPECT().GetByName(gomock.Any(), gomock.Any()).Return(author, nil)
 			err := authorUseCase.CreateAuthor(ctx, req)
 			So(err, ShouldNotBeNil)
 		})
 
 		Convey("resp err when create author ", func() {
+			repoMock.EXPECT().GetAuthorRepo().Return(authorRepo).AnyTimes()
+
 			authorRepo.EXPECT().GetByName(gomock.Any(), gomock.Any()).Return(nil, nil)
 			authorRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(errResp)
 			err := authorUseCase.CreateAuthor(ctx, req)
@@ -206,6 +231,8 @@ func TestCreateAuthor(t *testing.T) {
 		})
 
 		Convey("resp success create author ", func() {
+			repoMock.EXPECT().GetAuthorRepo().Return(authorRepo).AnyTimes()
+
 			authorRepo.EXPECT().GetByName(gomock.Any(), gomock.Any()).Return(nil, nil)
 			authorRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
 			err := authorUseCase.CreateAuthor(ctx, req)
@@ -221,11 +248,11 @@ func TestDeleteBookByAuthor(t *testing.T) {
 		defer ctrl.Finish()
 
 		config := &config.MainConfig{}
+		repoMock := repositoryMock.NewMockRepositoryImpl(ctrl)
 		authorRepo := repositoryMock.NewMockAuthorRepositoryImpl(ctrl)
 		bookRepo := repositoryMock.NewMockBookRepositoryImpl(ctrl)
-		trx := repositoryMock.NewMockTransactionRepositoryImpl(ctrl)
 
-		authorUseCase := NewAuthorUseCase(config, trx, authorRepo, bookRepo)
+		authorUseCase := NewAuthorUseCase(config, repoMock)
 
 		var (
 			ctx      = context.Background()
@@ -251,6 +278,9 @@ func TestDeleteBookByAuthor(t *testing.T) {
 		)
 
 		Convey("resp err when get book by id", func() {
+			repoMock.EXPECT().GetBookRepo().Return(bookRepo)
+			repoMock.EXPECT().GetAuthorRepo().Return(authorRepo)
+
 			bookRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(nil, errResp).AnyTimes()
 			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(author, nil).AnyTimes()
 			err := authorUseCase.DeleteBookByAuthor(ctx, authorID, bookID)
@@ -258,6 +288,9 @@ func TestDeleteBookByAuthor(t *testing.T) {
 		})
 
 		Convey("resp err when book doesnt exist", func() {
+			repoMock.EXPECT().GetBookRepo().Return(bookRepo)
+			repoMock.EXPECT().GetAuthorRepo().Return(authorRepo)
+
 			bookRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(author, nil).AnyTimes()
 			err := authorUseCase.DeleteBookByAuthor(ctx, authorID, bookID)
@@ -265,6 +298,9 @@ func TestDeleteBookByAuthor(t *testing.T) {
 		})
 
 		Convey("resp err when get author by id", func() {
+			repoMock.EXPECT().GetBookRepo().Return(bookRepo)
+			repoMock.EXPECT().GetAuthorRepo().Return(authorRepo)
+
 			bookRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(book, nil).AnyTimes()
 			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(nil, errResp).AnyTimes()
 			err := authorUseCase.DeleteBookByAuthor(ctx, authorID, bookID)
@@ -272,6 +308,9 @@ func TestDeleteBookByAuthor(t *testing.T) {
 		})
 
 		Convey("resp err when author doesnt exist", func() {
+			repoMock.EXPECT().GetBookRepo().Return(bookRepo)
+			repoMock.EXPECT().GetAuthorRepo().Return(authorRepo)
+
 			bookRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(book, nil).AnyTimes()
 			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 			err := authorUseCase.DeleteBookByAuthor(ctx, authorID, bookID)
@@ -279,6 +318,9 @@ func TestDeleteBookByAuthor(t *testing.T) {
 		})
 
 		Convey("resp err when delete book by author", func() {
+			repoMock.EXPECT().GetBookRepo().Return(bookRepo).AnyTimes()
+			repoMock.EXPECT().GetAuthorRepo().Return(authorRepo)
+
 			bookRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(book, nil).AnyTimes()
 			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(author, nil).AnyTimes()
 			bookRepo.EXPECT().DeleteBookByAuthorID(gomock.Any(), gomock.Any(), gomock.Any()).Return(errResp)
@@ -287,6 +329,9 @@ func TestDeleteBookByAuthor(t *testing.T) {
 		})
 
 		Convey("resp success delete book by author", func() {
+			repoMock.EXPECT().GetBookRepo().Return(bookRepo).AnyTimes()
+			repoMock.EXPECT().GetAuthorRepo().Return(authorRepo)
+
 			bookRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(book, nil).AnyTimes()
 			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(author, nil).AnyTimes()
 			bookRepo.EXPECT().DeleteBookByAuthorID(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
@@ -302,11 +347,11 @@ func TestGetListBookByAuthor(t *testing.T) {
 		defer ctrl.Finish()
 
 		config := &config.MainConfig{}
+		repoMock := repositoryMock.NewMockRepositoryImpl(ctrl)
 		authorRepo := repositoryMock.NewMockAuthorRepositoryImpl(ctrl)
 		bookRepo := repositoryMock.NewMockBookRepositoryImpl(ctrl)
-		trx := repositoryMock.NewMockTransactionRepositoryImpl(ctrl)
 
-		authorUseCase := NewAuthorUseCase(config, trx, authorRepo, bookRepo)
+		authorUseCase := NewAuthorUseCase(config, repoMock)
 
 		var (
 			ctx      = context.Background()
@@ -339,6 +384,8 @@ func TestGetListBookByAuthor(t *testing.T) {
 		)
 
 		Convey("resp err when get author by id", func() {
+			repoMock.EXPECT().GetAuthorRepo().Return(authorRepo)
+
 			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(nil, errResp)
 			resp, err := authorUseCase.GetListBookByAuthor(ctx, authorID)
 			So(err, ShouldNotBeNil)
@@ -346,6 +393,8 @@ func TestGetListBookByAuthor(t *testing.T) {
 		})
 
 		Convey("resp err when author doesnt exist", func() {
+			repoMock.EXPECT().GetAuthorRepo().Return(authorRepo)
+
 			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(nil, nil)
 			resp, err := authorUseCase.GetListBookByAuthor(ctx, authorID)
 			So(err, ShouldNotBeNil)
@@ -353,6 +402,9 @@ func TestGetListBookByAuthor(t *testing.T) {
 		})
 
 		Convey("resp err when get books by author", func() {
+			repoMock.EXPECT().GetAuthorRepo().Return(authorRepo)
+			repoMock.EXPECT().GetBookRepo().Return(bookRepo)
+
 			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(author, nil)
 			bookRepo.EXPECT().GetListBookByAuthorID(gomock.Any(), gomock.Any()).Return(nil, errResp)
 			resp, err := authorUseCase.GetListBookByAuthor(ctx, authorID)
@@ -361,6 +413,9 @@ func TestGetListBookByAuthor(t *testing.T) {
 		})
 
 		Convey("resp success", func() {
+			repoMock.EXPECT().GetAuthorRepo().Return(authorRepo)
+			repoMock.EXPECT().GetBookRepo().Return(bookRepo)
+
 			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(author, nil)
 			bookRepo.EXPECT().GetListBookByAuthorID(gomock.Any(), gomock.Any()).Return(books, nil)
 			resp, err := authorUseCase.GetListBookByAuthor(ctx, authorID)

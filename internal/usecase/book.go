@@ -8,7 +8,6 @@ import (
 	"github.com/imanudd/inventorySvc-clean-architecture/config"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/repository"
-	"github.com/imanudd/inventorySvc-clean-architecture/pkg/elasticsearch"
 	"github.com/imanudd/inventorySvc-clean-architecture/pkg/validator"
 	"golang.org/x/sync/errgroup"
 )
@@ -21,25 +20,20 @@ type BookUseCaseImpl interface {
 }
 
 type bookUseCase struct {
-	config     *config.MainConfig
-	es         elasticsearch.ElasticsearchImpl
-	trx        repository.TransactionRepositoryImpl
-	bookRepo   repository.BookRepositoryImpl
-	authorRepo repository.AuthorRepositoryImpl
+	config *config.MainConfig
+	repo   repository.RepositoryImpl
 }
 
-func NewBookUseCase(config *config.MainConfig, es elasticsearch.ElasticsearchImpl, trx repository.TransactionRepositoryImpl, bookRepo repository.BookRepositoryImpl, authorRepo repository.AuthorRepositoryImpl) BookUseCaseImpl {
+func NewBookUseCase(config *config.MainConfig, repo repository.RepositoryImpl) BookUseCaseImpl {
 	return &bookUseCase{
-		config:     config,
-		es:         es,
-		trx:        trx,
-		bookRepo:   bookRepo,
-		authorRepo: authorRepo,
+		config: config,
+		repo:   repo,
 	}
 }
 
 func (s *bookUseCase) DeleteBook(ctx context.Context, id int) error {
-	book, err := s.bookRepo.GetByID(ctx, id)
+
+	book, err := s.repo.GetBookRepo().GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -48,11 +42,11 @@ func (s *bookUseCase) DeleteBook(ctx context.Context, id int) error {
 		return errors.New("book not found")
 	}
 
-	return s.bookRepo.Delete(ctx, id)
+	return s.repo.GetBookRepo().Delete(ctx, id)
 }
 
 func (s *bookUseCase) GetDetailBook(ctx context.Context, id int) (*domain.DetailBook, error) {
-	book, err := s.bookRepo.GetByID(ctx, id)
+	book, err := s.repo.GetBookRepo().GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +55,7 @@ func (s *bookUseCase) GetDetailBook(ctx context.Context, id int) (*domain.Detail
 		return nil, errors.New("book not found")
 	}
 
-	author, err := s.authorRepo.GetByID(ctx, book.AuthorID)
+	author, err := s.repo.GetAuthorRepo().GetByID(ctx, book.AuthorID)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +87,7 @@ func (s *bookUseCase) UpdateBook(ctx context.Context, req *domain.UpdateBookRequ
 	)
 
 	g.Go(func() error {
-		book, err = s.bookRepo.GetByID(gCtx, req.ID)
+		book, err = s.repo.GetBookRepo().GetByID(gCtx, req.ID)
 		if err != nil {
 			return err
 		}
@@ -105,7 +99,7 @@ func (s *bookUseCase) UpdateBook(ctx context.Context, req *domain.UpdateBookRequ
 	})
 
 	g.Go(func() error {
-		author, err = s.authorRepo.GetByID(gCtx, req.AuthorID)
+		author, err = s.repo.GetAuthorRepo().GetByID(gCtx, req.AuthorID)
 		if err != nil {
 			return err
 		}
@@ -121,7 +115,7 @@ func (s *bookUseCase) UpdateBook(ctx context.Context, req *domain.UpdateBookRequ
 		return err
 	}
 
-	return s.bookRepo.Update(ctx, &domain.Book{
+	return s.repo.GetBookRepo().Update(ctx, &domain.Book{
 		ID:       req.ID,
 		AuthorID: req.AuthorID,
 		BookName: req.BookName,
@@ -135,7 +129,7 @@ func (s *bookUseCase) AddBook(ctx context.Context, req *domain.CreateBookRequest
 		return err
 	}
 
-	author, err := s.authorRepo.GetByID(ctx, req.AuthorID)
+	author, err := s.repo.GetAuthorRepo().GetByID(ctx, req.AuthorID)
 	if err != nil {
 		return err
 	}
@@ -144,18 +138,18 @@ func (s *bookUseCase) AddBook(ctx context.Context, req *domain.CreateBookRequest
 		return errors.New("author not found")
 	}
 
-	books, err := s.bookRepo.GetLastBook(ctx)
-	if err != nil {
-		return err
-	}
+	// books, err := s.repo.BookRepository.GetLastBook(ctx)
+	// if err != nil {
+	// 	return err
+	// }
 
-	err = s.es.Save(ctx, elasticsearch.BOOK_DETAILS, &domain.CreateDetailBook{
-		Id:       books.ID + 1,
-		BookName: req.BookName,
-		Title:    req.Title,
-		Price:    req.Price,
-		Author:   *author,
-	})
+	// err = s.es.Save(ctx, elasticsearch.BOOK_DETAILS, &domain.CreateDetailBook{
+	// 	Id:       books.ID + 1,
+	// 	BookName: req.BookName,
+	// 	Title:    req.Title,
+	// 	Price:    req.Price,
+	// 	Author:   *author,
+	// })
 
 	if err != nil {
 		return err
@@ -169,5 +163,5 @@ func (s *bookUseCase) AddBook(ctx context.Context, req *domain.CreateBookRequest
 		CreatedAt: time.Now(),
 	}
 
-	return s.bookRepo.Create(ctx, book)
+	return s.repo.GetBookRepo().Create(ctx, book)
 }
