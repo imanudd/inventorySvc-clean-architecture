@@ -1,24 +1,25 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/imanudd/inventorySvc-clean-architecture/constant"
+	"github.com/imanudd/inventorySvc-clean-architecture/internal/delivery/http/handler/dto"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/delivery/http/helper"
-	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
 )
 
 func (h *Handler) CreateAuthorAndBook(c *gin.Context) {
-	var req domain.CreateAuthorAndBookRequest
+	var reqDTO dto.CreateAuthorAndBookRequest
 
-	if err := c.ShouldBindJSON(&req); err != nil {
-		helper.Error(c, http.StatusBadRequest, "error bad request")
+	req, err := reqDTO.TransformIn(c)
+	if err != nil {
+		helper.Error(c, http.StatusBadRequest, constant.ErrBadRequest)
 		return
 	}
 
-	err := h.usecase.GetAuthorUseCase().CreateAuthorAndBook(c, &req)
+	err = h.usecase.GetAuthorUseCase().CreateAuthorAndBook(c, req)
 	if err != nil {
 		helper.InternalError(c, err)
 		return
@@ -35,20 +36,21 @@ func (h *Handler) CreateAuthorAndBook(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param input body domain.CreateAuthorRequest true "data"
+// @Param input body dto.CreateAuthorRequest true "data"
 // @Success 200 {object} helper.JSONResponse
 // @Failure 400 {object} helper.JSONResponse
 // @Failure 500 {object} helper.JSONResponse
 // @Router /inventorysvc/managements/author [POST]
 func (h *Handler) CreateAuthor(c *gin.Context) {
-	var req domain.CreateAuthorRequest
-	if err := c.ShouldBind(&req); err != nil {
-		fmt.Println(req)
-		helper.Error(c, http.StatusBadRequest, "error bad request")
+	var reqDTO dto.CreateAuthorRequest
+
+	req, err := reqDTO.TransformIn(c)
+	if err != nil {
+		helper.Error(c, http.StatusBadRequest, constant.ErrBadRequest)
 		return
 	}
 
-	err := h.usecase.GetAuthorUseCase().CreateAuthor(c, &req)
+	err = h.usecase.GetAuthorUseCase().CreateAuthor(c, req)
 	if err != nil {
 		helper.InternalError(c, err)
 		return
@@ -66,27 +68,22 @@ func (h *Handler) CreateAuthor(c *gin.Context) {
 // @Produce json
 // @Security ApiKeyAuth
 // @Param id path string true "author id"
-// @Param input body domain.AddAuthorBookRequest true "data"
+// @Param input body dto.AddAuthorBookRequest true "data"
 // @Success 200 {object} helper.JSONResponse
 // @Failure 400 {object} helper.JSONResponse
 // @Failure 500 {object} helper.JSONResponse
 // @Router /inventorysvc/managements/author/{id} [POST]
 func (h *Handler) AddAuthorBook(c *gin.Context) {
 
-	var req domain.AddAuthorBookRequest
-	err := c.ShouldBind(&req)
+	var reqDTO dto.AddAuthorBookRequest
+
+	req, err := reqDTO.TransformIn(c)
 	if err != nil {
-		helper.Error(c, http.StatusBadRequest, "error bad request")
+		helper.Error(c, http.StatusBadRequest, constant.ErrBadRequest)
 		return
 	}
 
-	req.AuthorID, err = strconv.Atoi(c.Param("id"))
-	if err != nil {
-		helper.Error(c, http.StatusBadRequest, "error bad request")
-		return
-	}
-
-	err = h.usecase.GetAuthorUseCase().AddAuthorBook(c, &req)
+	err = h.usecase.GetAuthorUseCase().AddAuthorBook(c, req)
 	if err != nil {
 		helper.InternalError(c, err)
 		return
@@ -103,7 +100,7 @@ func (h *Handler) AddAuthorBook(c *gin.Context) {
 // @Produce json
 // @Security ApiKeyAuth
 // @Param id path string true "author id"
-// @Success 200 {object} helper.JSONResponse{data=[]domain.Book}
+// @Success 200 {object} helper.JSONResponse{data=[]dto.BookResponse}
 // @Failure 400 {object} helper.JSONResponse
 // @Failure 500 {object} helper.JSONResponse
 // @Router /inventorysvc/managements/author/{id}/list [GET]
@@ -111,17 +108,24 @@ func (h *Handler) GetListBookByAuthor(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		helper.Error(c, http.StatusBadRequest, "error bad request")
+		helper.Error(c, http.StatusBadRequest, constant.ErrBadRequest)
 		return
 	}
 
-	resp, err := h.usecase.GetAuthorUseCase().GetListBookByAuthor(c, id)
+	books, err := h.usecase.GetAuthorUseCase().GetListBookByAuthor(c, int64(id))
 	if err != nil {
 		helper.InternalError(c, err)
 		return
 	}
 
-	helper.Success(c, http.StatusOK, resp)
+	var respDTOs []dto.BookResponse
+	for _, book := range books {
+		var bookDTO dto.BookResponse
+		bookDTO.TransformOut(book)
+		respDTOs = append(respDTOs, bookDTO)
+	}
+
+	helper.Success(c, http.StatusOK, respDTOs)
 }
 
 // GetListBookByAuthor handler
@@ -138,20 +142,15 @@ func (h *Handler) GetListBookByAuthor(c *gin.Context) {
 // @Failure 500 {object} helper.JSONResponse
 // @Router /inventorysvc/managements/author/{id}/books/{bookid} [DELETE]
 func (h *Handler) DeleteBookByAuthor(c *gin.Context) {
+	bookId := c.GetInt64("bookid")
+	id := c.GetInt64("id")
 
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		helper.Error(c, http.StatusBadRequest, "error bad request")
+	if bookId == 0 || id == 0 {
+		helper.Error(c, http.StatusBadRequest, constant.ErrBadRequest)
 		return
 	}
 
-	bookId, err := strconv.Atoi(c.Param("bookid"))
-	if err != nil {
-		helper.Error(c, http.StatusBadRequest, "error bad request")
-		return
-	}
-
-	err = h.usecase.GetAuthorUseCase().DeleteBookByAuthor(c, id, bookId)
+	err := h.usecase.GetAuthorUseCase().DeleteBookByAuthor(c, id, bookId)
 	if err != nil {
 		helper.InternalError(c, err)
 		return

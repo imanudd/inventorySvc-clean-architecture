@@ -8,13 +8,12 @@ import (
 	"github.com/imanudd/inventorySvc-clean-architecture/config"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/repository"
-	"github.com/imanudd/inventorySvc-clean-architecture/pkg/validator"
 	"golang.org/x/sync/errgroup"
 )
 
 type BookUseCaseImpl interface {
-	GetDetailBook(ctx context.Context, id int) (*domain.DetailBook, error)
-	DeleteBook(ctx context.Context, id int) error
+	GetDetailBook(ctx context.Context, id int64) (*domain.DetailBook, error)
+	DeleteBook(ctx context.Context, id int64) error
 	UpdateBook(ctx context.Context, req *domain.UpdateBookRequest) error
 	AddBook(ctx context.Context, req *domain.CreateBookRequest) error
 }
@@ -31,7 +30,7 @@ func NewBookUseCase(config *config.MainConfig, repo repository.RepositoryImpl) B
 	}
 }
 
-func (s *bookUseCase) DeleteBook(ctx context.Context, id int) error {
+func (s *bookUseCase) DeleteBook(ctx context.Context, id int64) error {
 
 	book, err := s.repo.GetBookRepo().GetByID(ctx, id)
 	if err != nil {
@@ -45,7 +44,7 @@ func (s *bookUseCase) DeleteBook(ctx context.Context, id int) error {
 	return s.repo.GetBookRepo().Delete(ctx, id)
 }
 
-func (s *bookUseCase) GetDetailBook(ctx context.Context, id int) (*domain.DetailBook, error) {
+func (s *bookUseCase) GetDetailBook(ctx context.Context, id int64) (*domain.DetailBook, error) {
 	book, err := s.repo.GetBookRepo().GetByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -74,10 +73,6 @@ func (s *bookUseCase) GetDetailBook(ctx context.Context, id int) (*domain.Detail
 }
 
 func (s *bookUseCase) UpdateBook(ctx context.Context, req *domain.UpdateBookRequest) error {
-	if err := validator.ValidateStruct(req); err != nil {
-		return err
-	}
-
 	g, gCtx := errgroup.WithContext(ctx)
 
 	var (
@@ -125,10 +120,6 @@ func (s *bookUseCase) UpdateBook(ctx context.Context, req *domain.UpdateBookRequ
 }
 
 func (s *bookUseCase) AddBook(ctx context.Context, req *domain.CreateBookRequest) error {
-	if err := validator.ValidateStruct(req); err != nil {
-		return err
-	}
-
 	author, err := s.repo.GetAuthorRepo().GetByID(ctx, req.AuthorID)
 	if err != nil {
 		return err

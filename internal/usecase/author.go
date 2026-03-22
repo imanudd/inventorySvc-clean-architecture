@@ -10,13 +10,12 @@ import (
 	"github.com/imanudd/inventorySvc-clean-architecture/config"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/repository"
-	"github.com/imanudd/inventorySvc-clean-architecture/pkg/validator"
 )
 
 type AuthorUseCaseImpl interface {
 	CreateAuthorAndBook(ctx context.Context, req *domain.CreateAuthorAndBookRequest) error
-	DeleteBookByAuthor(ctx context.Context, id, bookId int) error
-	GetListBookByAuthor(ctx context.Context, id int) ([]*domain.Book, error)
+	DeleteBookByAuthor(ctx context.Context, id, bookId int64) error
+	GetListBookByAuthor(ctx context.Context, id int64) ([]*domain.Book, error)
 	AddAuthorBook(ctx context.Context, req *domain.AddAuthorBookRequest) error
 	CreateAuthor(ctx context.Context, req *domain.CreateAuthorRequest) error
 }
@@ -34,10 +33,6 @@ func NewAuthorUseCase(config *config.MainConfig, repo repository.RepositoryImpl)
 }
 
 func (u *authorUseCase) CreateAuthorAndBook(ctx context.Context, req *domain.CreateAuthorAndBookRequest) error {
-	if err := validator.ValidateStruct(req); err != nil {
-		return err
-	}
-
 	return u.repo.GetTransactionRepo().WithTransaction(ctx, func(txCtx context.Context) error {
 		err := u.repo.GetAuthorRepo().Create(txCtx, &domain.Author{
 			ID:          req.Book.AuthorID,
@@ -65,10 +60,6 @@ func (u *authorUseCase) CreateAuthorAndBook(ctx context.Context, req *domain.Cre
 }
 
 func (u *authorUseCase) AddAuthorBook(ctx context.Context, req *domain.AddAuthorBookRequest) error {
-	if err := validator.ValidateStruct(req); err != nil {
-		return err
-	}
-
 	author, err := u.repo.GetAuthorRepo().GetByID(ctx, req.AuthorID)
 	if err != nil {
 		return err
@@ -87,10 +78,6 @@ func (u *authorUseCase) AddAuthorBook(ctx context.Context, req *domain.AddAuthor
 }
 
 func (u *authorUseCase) CreateAuthor(ctx context.Context, req *domain.CreateAuthorRequest) error {
-	if err := validator.ValidateStruct(req); err != nil {
-		return err
-	}
-
 	author, err := u.repo.GetAuthorRepo().GetByName(ctx, req.Name)
 	if err != nil {
 		return err
@@ -107,7 +94,7 @@ func (u *authorUseCase) CreateAuthor(ctx context.Context, req *domain.CreateAuth
 	})
 }
 
-func (u *authorUseCase) DeleteBookByAuthor(ctx context.Context, id int, bookId int) error {
+func (u *authorUseCase) DeleteBookByAuthor(ctx context.Context, id int64, bookId int64) error {
 	g, gCtx := errgroup.WithContext(ctx)
 
 	var (
@@ -150,7 +137,7 @@ func (u *authorUseCase) DeleteBookByAuthor(ctx context.Context, id int, bookId i
 	return u.repo.GetBookRepo().DeleteBookByAuthorID(ctx, author.ID, book.ID)
 }
 
-func (u *authorUseCase) GetListBookByAuthor(ctx context.Context, id int) ([]*domain.Book, error) {
+func (u *authorUseCase) GetListBookByAuthor(ctx context.Context, id int64) ([]*domain.Book, error) {
 	author, err := u.repo.GetAuthorRepo().GetByID(ctx, id)
 	if err != nil {
 		return nil, err

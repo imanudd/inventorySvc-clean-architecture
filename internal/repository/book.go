@@ -5,15 +5,16 @@ import (
 	"errors"
 
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
+	"github.com/imanudd/inventorySvc-clean-architecture/internal/repository/dto"
 	"gorm.io/gorm"
 )
 
 type BookRepositoryImpl interface {
 	GetLastBook(ctx context.Context) (*domain.Book, error)
-	GetListBookByAuthorID(ctx context.Context, authorID int) ([]*domain.Book, error)
-	DeleteBookByAuthorID(ctx context.Context, authorID, bookID int) error
-	GetByID(ctx context.Context, id int) (*domain.Book, error)
-	Delete(ctx context.Context, id int) error
+	GetListBookByAuthorID(ctx context.Context, authorID int64) ([]*domain.Book, error)
+	DeleteBookByAuthorID(ctx context.Context, authorID, bookID int64) error
+	GetByID(ctx context.Context, id int64) (*domain.Book, error)
+	Delete(ctx context.Context, id int64) error
 	Update(ctx context.Context, req *domain.Book) error
 	Create(ctx context.Context, req *domain.Book) error
 }
@@ -31,38 +32,52 @@ func NewBookRepository(db *gorm.DB) BookRepositoryImpl {
 }
 
 func (r *BookRepository) GetLastBook(ctx context.Context) (*domain.Book, error) {
-	var books *domain.Book
+	var bookDTO dto.BookDTO
 
-	if err := r.tx(ctx).Order("created_at DESC").First(&books).Error; err != nil {
+	if err := r.tx(ctx).Table("books").
+		Select("id, author_id, book_name, title, price, created_at").
+		Order("created_at DESC").
+		First(&bookDTO).Error; err != nil {
 		return nil, err
 	}
 
-	return books, nil
+	return bookDTO.TransformToDomain(), nil
 }
 
-func (r *BookRepository) GetListBookByAuthorID(ctx context.Context, authorID int) ([]*domain.Book, error) {
-	var books []*domain.Book
+func (r *BookRepository) GetListBookByAuthorID(ctx context.Context, authorID int64) ([]*domain.Book, error) {
+	var bookDTOs []dto.BookDTO
 
-	db := r.tx(ctx).Model(&domain.Book{}).Where("author_id = ?", authorID).Find(&books)
+	db := r.tx(ctx).Table("books").
+		Select("id, author_id, book_name, title, price, created_at").
+		Where("author_id = ?", authorID).
+		Find(&bookDTOs)
 	if err := db.Error; err != nil {
 		return nil, err
 	}
 
+	books := make([]*domain.Book, len(bookDTOs))
+	for i, bookDTO := range bookDTOs {
+		books[i] = bookDTO.TransformToDomain()
+	}
+
 	return books, nil
-
 }
 
-func (r *BookRepository) DeleteBookByAuthorID(ctx context.Context, authorID int, bookID int) error {
-	return r.tx(ctx).Model(&domain.Book{}).Delete("id = ? and author_id = ?", bookID, authorID).Error
+func (r *BookRepository) DeleteBookByAuthorID(ctx context.Context, authorID int64, bookID int64) error {
+	return r.tx(ctx).Table("books").Delete("id = ? and author_id = ?", bookID, authorID).Error
 }
 
-func (r *BookRepository) Delete(ctx context.Context, id int) error {
-	return r.tx(ctx).WithContext(ctx).Model(&domain.Book{}).Delete("id = ?", id).Error
+func (r *BookRepository) Delete(ctx context.Context, id int64) error {
+	return r.tx(ctx).WithContext(ctx).Table("books").Delete("id = ?", id).Error
 }
 
-func (r *BookRepository) GetByID(ctx context.Context, id int) (*domain.Book, error) {
-	var book domain.Book
-	db := r.tx(ctx).Model(&domain.Book{}).Where("id = ?", id).First(&book)
+func (r *BookRepository) GetByID(ctx context.Context, id int64) (*domain.Book, error) {
+	var bookDTO dto.BookDTO
+	db := r.tx(ctx).Table("books").
+		Select("id, author_id, book_name, title, price, created_at").
+		Where("id = ?", id).
+		First(&bookDTO)
+
 	if errors.Is(db.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
@@ -71,15 +86,23 @@ func (r *BookRepository) GetByID(ctx context.Context, id int) (*domain.Book, err
 		return nil, err
 	}
 
-	return &book, nil
+	return bookDTO.TransformToDomain(), nil
 }
 
 func (r *BookRepository) Update(ctx context.Context, req *domain.Book) error {
-	return r.tx(ctx).Omit("id").Model(&domain.Book{}).Where("id = ?", req.ID).Updates(&req).Error
+	var bookDTO dto.BookDTO
+	bookDTO.TransformFromDomain(req)
+
+	return r.tx(ctx).Table("books").
+		Where("id = ?", req.ID).
+		Updates(&bookDTO).Error
 }
 
 func (r *BookRepository) Create(ctx context.Context, req *domain.Book) error {
-	db := r.tx(ctx).Model(&domain.Book{}).Create(&req)
+	var bookDTO dto.BookDTO
+	bookDTO.TransformFromDomain(req)
+
+	db := r.tx(ctx).Table("books").Create(&bookDTO)
 
 	return db.Error
 }

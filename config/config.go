@@ -17,7 +17,7 @@ type MainConfig struct {
 	DBName           string `envconfig:"PGSQL_DBNAME" default:"inventorybook"`
 	LogMode          bool   `envconfig:"LOG_MODE" default:"true"`
 	MaxIdleConns     int    `envconfig:"MAX_IDLE_CONNS" default:"10"`
-	MaxOpenConns     int    `envconfig:"MAX_OPEN_CONNS" default:"10"`
+	MaxOpenConns     int    `envconfig:"MAX_OPEN_CONNS" default:"50"`
 	ConnMaxLifetime  int    `envconfig:"CONN_MAX_LIFETIME" default:"60"`
 
 	ElasticHost          string `envconfig:"ELASTIC_HOST" default:"https://localhost:9200"`

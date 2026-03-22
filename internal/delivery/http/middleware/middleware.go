@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/imanudd/inventorySvc-clean-architecture/config"
+	"github.com/imanudd/inventorySvc-clean-architecture/constant"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/delivery/http/helper"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/repository"
 	"github.com/imanudd/inventorySvc-clean-architecture/pkg/auth"
@@ -42,13 +43,13 @@ func (m *AuthMiddleware) JWTAuth(h ...gin.HandlerFunc) gin.HandlerFunc {
 		authJwt := auth.NewAuth(m.cfg)
 		userID, err := authJwt.VerifyToken(token)
 		if err != nil {
-			helper.Error(c, http.StatusUnauthorized, err.Error())
+			helper.Error(c, http.StatusUnauthorized, constant.ErrUnauthorized)
 			return
 		}
 
 		user, err := m.repo.GetUserRepo().GetByID(c, int(userID))
 		if err != nil {
-			helper.Error(c, http.StatusUnauthorized, err.Error())
+			helper.Error(c, http.StatusUnauthorized, constant.ErrUnauthorized)
 			return
 		}
 

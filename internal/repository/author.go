@@ -5,13 +5,14 @@ import (
 	"errors"
 
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
+	"github.com/imanudd/inventorySvc-clean-architecture/internal/repository/dto"
 	"gorm.io/gorm"
 )
 
 type AuthorRepositoryImpl interface {
 	Create(ctx context.Context, req *domain.Author) error
 	GetByName(ctx context.Context, name string) (*domain.Author, error)
-	GetByID(ctx context.Context, id int) (*domain.Author, error)
+	GetByID(ctx context.Context, id int64) (*domain.Author, error)
 }
 
 type AuthorRepository struct {
@@ -27,12 +28,19 @@ func NewAuthorRepository(db *gorm.DB) AuthorRepositoryImpl {
 }
 
 func (r *AuthorRepository) Create(ctx context.Context, req *domain.Author) error {
-	return r.tx(ctx).Model(&domain.Author{}).Create(&req).Error
+	var authorDTO dto.AuthorDTO
+	authorDTO.TransformFromDomain(req)
+
+	return r.tx(ctx).Table("authors").Create(&authorDTO).Error
 }
 
 func (r *AuthorRepository) GetByName(ctx context.Context, name string) (*domain.Author, error) {
-	var author domain.Author
-	db := r.tx(ctx).Model(&author).Where("name ilike ?", name).First(&author)
+	var authorDTO dto.AuthorDTO
+	db := r.tx(ctx).Table("authors").
+		Select("id, name, email, phone_number").
+		Where("name = ?", name).
+		First(&authorDTO)
+
 	if errors.Is(db.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
@@ -41,12 +49,16 @@ func (r *AuthorRepository) GetByName(ctx context.Context, name string) (*domain.
 		return nil, err
 	}
 
-	return &author, nil
+	return authorDTO.TransformToDomain(), nil
 }
 
-func (r *AuthorRepository) GetByID(ctx context.Context, id int) (*domain.Author, error) {
-	var author domain.Author
-	db := r.tx(ctx).Model(&domain.Author{}).Where("id = ?", id).First(&author)
+func (r *AuthorRepository) GetByID(ctx context.Context, id int64) (*domain.Author, error) {
+	var authorDTO dto.AuthorDTO
+	db := r.tx(ctx).Table("authors").
+		Select("id, name, email, phone_number").
+		Where("id = ?", id).
+		First(&authorDTO)
+
 	if errors.Is(db.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
@@ -55,5 +67,5 @@ func (r *AuthorRepository) GetByID(ctx context.Context, id int) (*domain.Author,
 		return nil, err
 	}
 
-	return &author, nil
+	return authorDTO.TransformToDomain(), nil
 }

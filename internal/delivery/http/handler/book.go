@@ -5,8 +5,9 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/imanudd/inventorySvc-clean-architecture/constant"
+	"github.com/imanudd/inventorySvc-clean-architecture/internal/delivery/http/handler/dto"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/delivery/http/helper"
-	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
 )
 
 // AddBook handler
@@ -16,20 +17,21 @@ import (
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param input body domain.CreateBookRequest true "data"
+// @Param input body dto.CreateBookRequest true "data"
 // @Success 200 {object} helper.JSONResponse
 // @Failure 400 {object} helper.JSONResponse
 // @Failure 500 {object} helper.JSONResponse
 // @Router /inventorysvc/managements/book [POST]
 func (h *Handler) AddBook(c *gin.Context) {
-	var req domain.CreateBookRequest
+	var reqDTO dto.CreateBookRequest
 
-	if err := c.ShouldBind(&req); err != nil {
-		helper.Error(c, http.StatusBadRequest, "error bad request")
+	req, err := reqDTO.TransformIn(c)
+	if err != nil {
+		helper.Error(c, http.StatusBadRequest, constant.ErrBadRequest)
 		return
 	}
 
-	err := h.usecase.GetBookUseCase().AddBook(c, &req)
+	err = h.usecase.GetBookUseCase().AddBook(c, req)
 	if err != nil {
 		helper.InternalError(c, err)
 		return
@@ -46,27 +48,21 @@ func (h *Handler) AddBook(c *gin.Context) {
 // @Produce json
 // @Security ApiKeyAuth
 // @param id path string true "book id"
-// @Param input body domain.UpdateBookRequest true "data"
+// @Param input body dto.UpdateBookRequest true "data"
 // @Success 200 {object} helper.JSONResponse
 // @Failure 400 {object} helper.JSONResponse
 // @Failure 500 {object} helper.JSONResponse
 // @Router /inventorysvc/managements/book/{id} [POST]
 func (h *Handler) UpdateBook(c *gin.Context) {
-	var req domain.UpdateBookRequest
+	var reqDTO dto.UpdateBookRequest
 
-	err := c.ShouldBind(&req)
+	req, err := reqDTO.TransformIn(c)
 	if err != nil {
-		helper.Error(c, http.StatusBadRequest, "error bad request")
+		helper.Error(c, http.StatusBadRequest, constant.ErrBadRequest)
 		return
 	}
 
-	req.ID, err = strconv.Atoi(c.Param("id"))
-	if err != nil {
-		helper.Error(c, http.StatusBadRequest, "error bad request")
-		return
-	}
-
-	err = h.usecase.GetBookUseCase().UpdateBook(c, &req)
+	err = h.usecase.GetBookUseCase().UpdateBook(c, req)
 	if err != nil {
 		helper.InternalError(c, err)
 		return
@@ -89,13 +85,13 @@ func (h *Handler) UpdateBook(c *gin.Context) {
 // @Router /inventorysvc/managements/book/{id} [DELETE]
 func (h *Handler) DeleteBook(c *gin.Context) {
 
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		helper.Error(c, http.StatusBadRequest, "error bad request")
+	id := c.GetInt64("id")
+	if id == 0 {
+		helper.Error(c, http.StatusBadRequest, constant.ErrBadRequest)
 		return
 	}
 
-	err = h.usecase.GetBookUseCase().DeleteBook(c, id)
+	err := h.usecase.GetBookUseCase().DeleteBook(c, id)
 	if err != nil {
 		helper.InternalError(c, err)
 		return
@@ -112,23 +108,25 @@ func (h *Handler) DeleteBook(c *gin.Context) {
 // @Produce json
 // @Security ApiKeyAuth
 // @param id path string true "book id"
-// @Success 200 {object} helper.JSONResponse{data=domain.DetailBook}
+// @Success 200 {object} helper.JSONResponse{data=dto.DetailBookResponse}
 // @Failure 400 {object} helper.JSONResponse
 // @Failure 500 {object} helper.JSONResponse
 // @Router /inventorysvc/managements/book/{id} [GET]
 func (h *Handler) GetDetailBook(c *gin.Context) {
-
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		helper.Error(c, http.StatusBadRequest, "error bad request")
+		helper.Error(c, http.StatusBadRequest, constant.ErrBadRequest)
 		return
 	}
 
-	resp, err := h.usecase.GetBookUseCase().GetDetailBook(c, id)
+	detail, err := h.usecase.GetBookUseCase().GetDetailBook(c, int64(id))
 	if err != nil {
 		helper.InternalError(c, err)
 		return
 	}
 
-	helper.Success(c, http.StatusOK, resp)
+	var respDTO dto.DetailBookResponse
+	respDTO.TransformOut(detail)
+
+	helper.Success(c, http.StatusOK, respDTO)
 }

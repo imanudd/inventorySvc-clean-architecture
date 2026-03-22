@@ -1,30 +1,31 @@
 package domain
 
 type LoginResponse struct {
-	Username string `json:"username"`
-	Token    string `json:"token"`
+	Username string
+	Token    string
 }
 
 type LoginRequest struct {
-	Username string `json:"username" validate:"required"`
-	Password string `json:"password" validate:"required"`
+	Username string
+	Password string
 }
 
 type GetByUsernameOrEmail struct {
-	Username string `gorm:"column:username"`
-	Email    string `gorm:"column:email"`
+	Username string
+	Email    string
 }
+
 type RegisterRequest struct {
-	Username string `json:"username" validate:"required"`
-	Password string `json:"password" validate:"required"`
-	Email    string `json:"email" validate:"required"`
+	Username string
+	Password string
+	Email    string
 }
 
 type User struct {
-	ID       int    `gorm:"column:id"`
-	Username string `gorm:"column:username"`
-	Email    string `gorm:"column:email"`
-	Password string `gorm:"column:password"`
+	ID       int
+	Username string
+	Email    string
+	Password string
 }
 
 func (User) TableName() string {

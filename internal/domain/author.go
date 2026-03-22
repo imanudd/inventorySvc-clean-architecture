@@ -1,28 +1,28 @@
 package domain
 
 type CreateAuthorAndBookRequest struct {
-	Author CreateAuthorRequest `json:"author" validate:"required"`
-	Book   CreateBookRequest   `json:"book" validate:"required"`
+	Author CreateAuthorRequest
+	Book   CreateBookRequest
 }
 
 type AddAuthorBookRequest struct {
-	AuthorID int    `json:"-"`
-	BookName string `json:"book_name" validate:"required"`
-	Title    string `json:"title" validate:"required"`
-	Price    int    `json:"price" validate:"required"`
+	AuthorID int64
+	BookName string
+	Title    string
+	Price    float64
 }
 
 type CreateAuthorRequest struct {
-	Name        string `json:"name" validate:"required"`
-	Email       string `json:"email" validate:"required,email"`
-	PhoneNumber string `json:"phone_number" validate:"required"`
+	Name        string
+	Email       string
+	PhoneNumber string
 }
 
 type Author struct {
-	ID          int    `gorm:"column:id" json:"id"`
-	Name        string `gorm:"column:name" json:"name"`
-	Email       string `gorm:"column:email" json:"email"`
-	PhoneNumber string `gorm:"column:phone_number" json:"phone_number"`
+	ID          int64
+	Name        string
+	Email       string
+	PhoneNumber string
 }
 
 func (Author) TableName() string {

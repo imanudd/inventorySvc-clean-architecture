@@ -45,12 +45,6 @@ func TestCreateAuthorAndBook(t *testing.T) {
 			}
 		)
 
-		Convey("resp err validator", func() {
-			req.Author.Name = ""
-			err := authorUseCase.CreateAuthorAndBook(ctx, req)
-			So(err, ShouldNotBeNil)
-		})
-
 		Convey("transaction schema", func() {
 			Convey("error when create author", func() {
 				repoMock.EXPECT().GetTransactionRepo().Return(trx)
@@ -129,12 +123,6 @@ func TestAddAuthorBook(t *testing.T) {
 
 		authorUseCase := NewAuthorUseCase(config, repoMock)
 
-		Convey("resp err validator", func() {
-			req.BookName = ""
-			err := authorUseCase.AddAuthorBook(ctx, req)
-			So(err, ShouldNotBeNil)
-		})
-
 		Convey("resp err when get author by id", func() {
 			repoMock.EXPECT().GetAuthorRepo().Return(authorRepo)
 			authorRepo.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(nil, errResp)
@@ -199,11 +187,6 @@ func TestCreateAuthor(t *testing.T) {
 
 			errResp = errors.New("error")
 		)
-		Convey("resp err validator", func() {
-			req.Name = ""
-			err := authorUseCase.CreateAuthor(ctx, req)
-			So(err, ShouldNotBeNil)
-		})
 
 		Convey("resp err when get author by name", func() {
 			repoMock.EXPECT().GetAuthorRepo().Return(authorRepo)
@@ -255,10 +238,10 @@ func TestDeleteBookByAuthor(t *testing.T) {
 		authorUseCase := NewAuthorUseCase(config, repoMock)
 
 		var (
-			ctx      = context.Background()
-			errResp  = errors.New("error")
-			authorID = 1
-			bookID   = 123
+			ctx            = context.Background()
+			errResp        = errors.New("error")
+			authorID int64 = 1
+			bookID   int64 = 123
 
 			book = &domain.Book{
 				ID:        bookID,
@@ -354,9 +337,9 @@ func TestGetListBookByAuthor(t *testing.T) {
 		authorUseCase := NewAuthorUseCase(config, repoMock)
 
 		var (
-			ctx      = context.Background()
-			errResp  = errors.New("error")
-			authorID = 1
+			ctx            = context.Background()
+			errResp        = errors.New("error")
+			authorID int64 = 1
 
 			author = &domain.Author{
 				ID:          authorID,

@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
+	"github.com/imanudd/inventorySvc-clean-architecture/internal/repository/dto"
 	"gorm.io/gorm"
 )
 
@@ -27,18 +28,33 @@ func NewUserRepository(db *gorm.DB) UserRepositoryImpl {
 }
 
 func (r *UserRepository) GetByID(ctx context.Context, id int) (*domain.User, error) {
-	var user domain.User
-	db := r.tx(ctx).Model(&user).Where("id = ?", id).First(&user)
+	var userDTO dto.UserDTO
+	db := r.tx(ctx).Table("users").
+		Select("id, username, email, password").
+		Where("id = ?", id).
+		First(&userDTO)
 	if err := db.Error; err != nil {
 		return nil, err
 	}
 
-	return &user, nil
+	return userDTO.TransformToDomain(), nil
 }
 
 func (r *UserRepository) GetByUsernameOrEmail(ctx context.Context, req *domain.GetByUsernameOrEmail) (*domain.User, error) {
-	var user *domain.User
-	db := r.tx(ctx).Model(&domain.User{}).Where("username ilike ? or email ilike ?", req.Username, req.Email).First(&user)
+	var userDTO dto.UserDTO
+
+	db := r.tx(ctx).Table("users").
+		Select("id, username, email, password")
+
+	if req.Username != "" && req.Email != "" {
+		db = db.Where("username = ? OR email = ?", req.Username, req.Email)
+	} else if req.Username != "" {
+		db = db.Where("username = ?", req.Username)
+	} else if req.Email != "" {
+		db = db.Where("email = ?", req.Email)
+	}
+
+	db = db.First(&userDTO)
 
 	if errors.Is(db.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
@@ -48,11 +64,15 @@ func (r *UserRepository) GetByUsernameOrEmail(ctx context.Context, req *domain.G
 		return nil, err
 	}
 
-	return user, nil
+	return userDTO.TransformToDomain(), nil
 }
 
 func (r *UserRepository) RegisterUser(ctx context.Context, req *domain.User) error {
-	db := r.tx(ctx).Model(&domain.User{}).Create(&req)
+	var userDTO dto.UserDTO
+	userDTO.TransformFromDomain(req)
+
+	db := r.tx(ctx).Table("users").
+		Create(&userDTO)
 
 	return db.Error
 }

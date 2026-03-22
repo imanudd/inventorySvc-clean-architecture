@@ -56,7 +56,7 @@ func (mr *MockBookRepositoryImplMockRecorder) Create(ctx, req any) *gomock.Call 
 }
 
 // Delete mocks base method.
-func (m *MockBookRepositoryImpl) Delete(ctx context.Context, id int) error {
+func (m *MockBookRepositoryImpl) Delete(ctx context.Context, id int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", ctx, id)
 	ret0, _ := ret[0].(error)
@@ -70,7 +70,7 @@ func (mr *MockBookRepositoryImplMockRecorder) Delete(ctx, id any) *gomock.Call {
 }
 
 // DeleteBookByAuthorID mocks base method.
-func (m *MockBookRepositoryImpl) DeleteBookByAuthorID(ctx context.Context, authorID, bookID int) error {
+func (m *MockBookRepositoryImpl) DeleteBookByAuthorID(ctx context.Context, authorID, bookID int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteBookByAuthorID", ctx, authorID, bookID)
 	ret0, _ := ret[0].(error)
@@ -84,7 +84,7 @@ func (mr *MockBookRepositoryImplMockRecorder) DeleteBookByAuthorID(ctx, authorID
 }
 
 // GetByID mocks base method.
-func (m *MockBookRepositoryImpl) GetByID(ctx context.Context, id int) (*domain.Book, error) {
+func (m *MockBookRepositoryImpl) GetByID(ctx context.Context, id int64) (*domain.Book, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByID", ctx, id)
 	ret0, _ := ret[0].(*domain.Book)
@@ -114,7 +114,7 @@ func (mr *MockBookRepositoryImplMockRecorder) GetLastBook(ctx any) *gomock.Call 
 }
 
 // GetListBookByAuthorID mocks base method.
-func (m *MockBookRepositoryImpl) GetListBookByAuthorID(ctx context.Context, authorID int) ([]*domain.Book, error) {
+func (m *MockBookRepositoryImpl) GetListBookByAuthorID(ctx context.Context, authorID int64) ([]*domain.Book, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetListBookByAuthorID", ctx, authorID)
 	ret0, _ := ret[0].([]*domain.Book)

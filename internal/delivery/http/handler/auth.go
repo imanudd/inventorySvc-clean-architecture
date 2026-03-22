@@ -4,8 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/imanudd/inventorySvc-clean-architecture/constant"
+	"github.com/imanudd/inventorySvc-clean-architecture/internal/delivery/http/handler/dto"
 	"github.com/imanudd/inventorySvc-clean-architecture/internal/delivery/http/helper"
-	"github.com/imanudd/inventorySvc-clean-architecture/internal/domain"
 )
 
 // Login handler
@@ -14,16 +15,17 @@ import (
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param input body domain.LoginRequest true "login data"
+// @Param input body dto.LoginRequest true "login data"
 // @Success 200 {object} helper.JSONResponse
 // @Failure 400 {object} helper.JSONResponse
 // @Failure 500 {object} helper.JSONResponse
 // @Router /inventorysvc/auth/login [POST]
 func (h *Handler) Login(c *gin.Context) {
-	var req *domain.LoginRequest
+	var reqDTO dto.LoginRequest
 
-	if err := c.ShouldBind(&req); err != nil {
-		helper.Error(c, http.StatusBadRequest, "error bad request")
+	req, err := reqDTO.TransformIn(c)
+	if err != nil {
+		helper.Error(c, http.StatusBadRequest, constant.ErrBadRequest)
 		return
 	}
 
@@ -33,7 +35,10 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
-	helper.Success(c, http.StatusOK, resp)
+	var respDTO dto.LoginResponse
+	respDTO.TransformOut(resp)
+
+	helper.Success(c, http.StatusOK, respDTO)
 }
 
 // Register handler
@@ -42,20 +47,21 @@ func (h *Handler) Login(c *gin.Context) {
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param input body domain.RegisterRequest true "register data"
+// @Param input body dto.RegisterRequest true "register data"
 // @Success 200 {object} helper.JSONResponse
 // @Failure 400 {object} helper.JSONResponse
 // @Failure 500 {object} helper.JSONResponse
 // @Router /inventorysvc/auth/register [POST]
 func (h *Handler) Register(c *gin.Context) {
-	var req *domain.RegisterRequest
+	var reqDTO dto.RegisterRequest
 
-	if err := c.ShouldBind(&req); err != nil {
-		helper.Error(c, http.StatusBadRequest, "error bad request")
+	req, err := reqDTO.TransformIn(c)
+	if err != nil {
+		helper.Error(c, http.StatusBadRequest, constant.ErrBadRequest)
 		return
 	}
 
-	err := h.usecase.GetAuthUseCase().Register(c, req)
+	err = h.usecase.GetAuthUseCase().Register(c, req)
 	if err != nil {
 		helper.InternalError(c, err)
 		return

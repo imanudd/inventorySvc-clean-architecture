@@ -1,9 +1,12 @@
 package helper
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/imanudd/inventorySvc-clean-architecture/constant"
+	"github.com/imanudd/inventorySvc-clean-architecture/pkg/validator"
 )
 
 type JSONResponse struct {
@@ -26,11 +29,11 @@ func Success(c *gin.Context, code int, data ...interface{}) {
 	c.JSON(code, hte)
 }
 
-func Error(c *gin.Context, code int, message string) {
+func Error(c *gin.Context, code int, message constant.ErrorMessage) {
 	hte := JSONResponse{
 		Code:       code,
 		StatusCode: code,
-		Message:    message,
+		Message:    string(message),
 	}
 
 	c.JSON(code, hte)
@@ -41,6 +44,12 @@ func InternalError(c *gin.Context, err error) {
 		Code:       http.StatusInternalServerError,
 		StatusCode: http.StatusInternalServerError,
 		Message:    err.Error(),
+	}
+
+	if errors.Is(err, &validator.ValidationErrors{}) {
+		response.Code = http.StatusBadRequest
+		response.StatusCode = http.StatusBadRequest
+		response.Message = err.Error()
 	}
 
 	c.JSON(response.Code, response)

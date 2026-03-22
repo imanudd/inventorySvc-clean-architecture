@@ -56,7 +56,7 @@ func (mr *MockAuthorRepositoryImplMockRecorder) Create(ctx, req any) *gomock.Cal
 }
 
 // GetByID mocks base method.
-func (m *MockAuthorRepositoryImpl) GetByID(ctx context.Context, id int) (*domain.Author, error) {
+func (m *MockAuthorRepositoryImpl) GetByID(ctx context.Context, id int64) (*domain.Author, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByID", ctx, id)
 	ret0, _ := ret[0].(*domain.Author)
